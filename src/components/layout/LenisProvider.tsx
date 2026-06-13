@@ -2,12 +2,15 @@
 
 import { useEffect, useRef, ReactNode } from "react"
 import { usePathname } from "next/navigation"
+import { gsap } from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
 import { setLenis } from "@/lib/lenis-bridge"
+
+gsap.registerPlugin(ScrollTrigger)
 
 export function LenisProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lenisRef = useRef<any>(null)
+  const lenisRef = useRef<{ destroy: () => void } | null>(null)
 
   useEffect(() => {
     let mounted = true
@@ -26,6 +29,9 @@ export function LenisProvider({ children }: { children: ReactNode }) {
 
       lenisRef.current = lenis
       setLenis(lenis)
+
+      // Sync Lenis with ScrollTrigger — critical for pinned sections
+      lenis.on("scroll", ScrollTrigger.update)
 
       const raf = (time: number) => {
         lenis.raf(time)

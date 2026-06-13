@@ -23,6 +23,12 @@ export function Header() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user
       setUser(u ?? null)

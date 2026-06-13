@@ -117,7 +117,6 @@ export function ScrollScene() {
           // Background word "FORCE": emerges, holds, then recedes
           const forceStart = 0
           const forcePeak = 0.50
-          const forceFade = 0.85
           let wordOpacity = 0
           if (p < forcePeak) {
             wordOpacity = (p - forceStart) / (forcePeak - forceStart) * 0.08

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect, useCallback } from "react"
+import { useRef, useState, useEffect, useCallback, useSyncExternalStore } from "react"
 import { gsap } from "gsap"
 import { CustomEase } from "gsap/CustomEase"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -10,6 +10,7 @@ CustomEase.create("cinema", "0.16, 1, 0.3, 1")
 
 export interface SlideItem {
   id: string | number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any
 }
 
@@ -20,12 +21,12 @@ interface CoverflowSliderProps {
   initialIndex?: number
 }
 
-function calcPos(index: number, focus: number, mobile: boolean) {
+function calcPos(index: number, focus: number, isMobile: boolean) {
   const diff = index - focus
   const abs = Math.abs(diff)
   const s = diff > 0 ? 1 : -1
 
-  if (mobile) {
+  if (isMobile) {
     return {
       x: diff * 120,
       z: diff === 0 ? 60 : -abs * 30,
@@ -73,6 +74,24 @@ function clamp(v: number, a: number, b: number) {
   return Math.min(b, Math.max(a, v))
 }
 
+function useMediaQuery(query: string): boolean {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (typeof window === "undefined") return () => {}
+      const mql = window.matchMedia(query)
+      mql.addEventListener("change", callback)
+      return () => mql.removeEventListener("change", callback)
+    },
+    [query],
+  )
+  const getSnapshot = useCallback(() => {
+    if (typeof window === "undefined") return false
+    return window.matchMedia(query).matches
+  }, [query])
+  const getServerSnapshot = useCallback(() => false, [])
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+}
+
 export function CoverflowSlider({
   items,
   renderSlide,
@@ -81,9 +100,10 @@ export function CoverflowSlider({
 }: CoverflowSliderProps) {
   const [activeIndex, setActiveIndex] = useState(initialIndex ?? 0)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [mounted, setMounted] = useState(false)
-  const mobile = useRef(false)
-  const reduceMotion = useRef(false)
+  const isMobile = useMediaQuery("(max-width: 767px)")
+  const prefersReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)")
+  const mobileRef = useRef(isMobile)
+  const reduceMotionRef = useRef(prefersReducedMotion)
   const slidesRef = useRef<(HTMLDivElement | null)[]>([])
   const dragging = useRef(false)
   const startX = useRef(0)
@@ -94,24 +114,13 @@ export function CoverflowSlider({
 
   const focusIndex = hoveredIndex !== null ? hoveredIndex : activeIndex
 
-  useEffect(() => {
-    setMounted(true)
-    const check = () => { mobile.current = window.innerWidth < 768 }
-    const rm = window.matchMedia("(prefers-reduced-motion: reduce)")
-    reduceMotion.current = rm.matches
-    check()
-    window.addEventListener("resize", check)
-    const handler = () => { reduceMotion.current = rm.matches }
-    rm.addEventListener("change", handler)
-    return () => {
-      window.removeEventListener("resize", check)
-      rm.removeEventListener("change", handler)
-    }
-  }, [])
+  // Keep refs in sync with state for stable animation callbacks
+  useEffect(() => { mobileRef.current = isMobile }, [isMobile])
+  useEffect(() => { reduceMotionRef.current = prefersReducedMotion }, [prefersReducedMotion])
 
   const animateTo = useCallback((refIndex: number, instant?: boolean) => {
     const dur = instant || !initialDone.current ? 0 : 1.6
-    const rm = reduceMotion.current
+    const rm = reduceMotionRef.current
     slidesRef.current.forEach((el, i) => {
       if (!el) return
       if (rm) {
@@ -123,7 +132,7 @@ export function CoverflowSlider({
         })
         return
       }
-      const p = calcPos(i, refIndex, mobile.current)
+      const p = calcPos(i, refIndex, mobileRef.current)
       gsap.to(el, {
         x: p.x,
         z: p.z,
@@ -140,7 +149,7 @@ export function CoverflowSlider({
 
   // Container zoom when hovering — camera push effect
   useEffect(() => {
-    if (!mounted || !trackRef.current || reduceMotion.current) return
+    if (!trackRef.current || reduceMotionRef.current) return
     if (hoveredIndex !== null) {
       gsap.to(trackRef.current, {
         scale: 1.02,
@@ -156,40 +165,40 @@ export function CoverflowSlider({
         overwrite: "auto",
       })
     }
-  }, [hoveredIndex, mounted])
+  }, [hoveredIndex])
 
   useEffect(() => {
-    if (!mounted) return
     initialDone.current = true
     if (hoveredIndex === null) animateTo(activeIndex)
-  }, [activeIndex, mounted, animateTo, hoveredIndex])
+  }, [activeIndex, animateTo, hoveredIndex])
 
   useEffect(() => {
-    if (!mounted) return
     if (hoveredIndex !== null) {
       animateTo(hoveredIndex)
     } else {
       animateTo(activeIndex)
     }
-  }, [hoveredIndex, mounted, animateTo, activeIndex])
+  }, [hoveredIndex, animateTo, activeIndex])
+
+  const initialIndexRef = useRef(initialIndex)
 
   useEffect(() => {
-    if (!mounted) return
-    slidesRef.current.forEach((el, i) => {
+    const idx = initialIndexRef.current ?? 0
+    slidesRef.current.forEach((el) => {
       if (!el) return
       gsap.set(el, { opacity: 0, z: -150, scale: 0.85 })
     })
     gsap.to(slidesRef.current.filter(Boolean), {
       opacity: 1,
       scale: 1,
-      z: (i: number) => calcPos(i, activeIndex, mobile.current).z,
+      z: (i: number) => calcPos(i, idx, mobileRef.current).z,
       duration: 1.2,
       stagger: 0.06,
       ease: "power4.out",
       delay: 0.4,
       onComplete: () => { initialDone.current = true },
     })
-  }, [mounted])
+  }, [])
 
   const goTo = useCallback(
     (index: number) => setActiveIndex(clamp(index, 0, items.length - 1)),
@@ -206,13 +215,13 @@ export function CoverflowSlider({
   }
 
   const onMove = (e: React.PointerEvent) => {
-    if (!dragging.current || reduceMotion.current) return
+    if (!dragging.current || reduceMotionRef.current) return
     const dx = e.clientX - startX.current
-    const offset = dx / (mobile.current ? 120 : 210)
+    const offset = dx / (mobileRef.current ? 120 : 210)
     dragOff.current = offset
     slidesRef.current.forEach((el, i) => {
       if (!el) return
-      const pos = calcPos(i, activeIndex - offset, mobile.current)
+      const pos = calcPos(i, activeIndex - offset, mobileRef.current)
       gsap.set(el, {
         x: pos.x,
         z: pos.z,
@@ -236,14 +245,13 @@ export function CoverflowSlider({
   }
 
   useEffect(() => {
-    if (!mounted) return
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") goPrev()
       else if (e.key === "ArrowRight") goNext()
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [mounted, goPrev, goNext])
+  }, [goPrev, goNext])
 
   const handleEnter = useCallback((i: number) => {
     if (!dragging.current) setHoveredIndex(i)
@@ -259,16 +267,16 @@ export function CoverflowSlider({
     <div
       ref={containerRef}
       className={`relative ${className || ""}`}
-      style={{ perspective: !reduceMotion.current ? "1200px" : undefined }}
+      style={{ perspective: !prefersReducedMotion ? "1200px" : undefined }}
       onPointerLeave={handleLeave}
     >
       <div
         ref={trackRef}
         className="relative w-full select-none"
         style={{
-          transformStyle: !reduceMotion.current ? "preserve-3d" : undefined,
-          minHeight: mobile.current ? "360px" : "540px",
-          willChange: reduceMotion.current ? undefined : "transform",
+          transformStyle: !prefersReducedMotion ? "preserve-3d" : undefined,
+          minHeight: isMobile ? "360px" : "540px",
+          willChange: prefersReducedMotion ? undefined : "transform",
         }}
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -280,18 +288,18 @@ export function CoverflowSlider({
             key={item.id}
             className="absolute top-0 left-1/2 h-full -translate-x-1/2"
             style={{
-              transformStyle: !reduceMotion.current ? "preserve-3d" : undefined,
+              transformStyle: !prefersReducedMotion ? "preserve-3d" : undefined,
               zIndex: items.length - Math.abs(i - focusIndex),
-              willChange: reduceMotion.current ? undefined : "transform, opacity, filter",
+              willChange: prefersReducedMotion ? undefined : "transform, opacity, filter",
             }}
           >
             <div
               ref={(el) => { slidesRef.current[i] = el }}
               className="h-full flex items-center"
               style={{
-                transformStyle: !reduceMotion.current ? "preserve-3d" : undefined,
-                backfaceVisibility: reduceMotion.current ? undefined : "hidden",
-                width: mobile.current ? "min(300px, 80vw)" : "min(460px, 72vw)",
+                transformStyle: !prefersReducedMotion ? "preserve-3d" : undefined,
+                backfaceVisibility: prefersReducedMotion ? undefined : "hidden",
+                width: isMobile ? "min(300px, 80vw)" : "min(460px, 72vw)",
                 touchAction: "none",
               }}
               onPointerEnter={() => handleEnter(i)}

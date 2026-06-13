@@ -46,7 +46,7 @@ export function Footer() {
               Contact
             </h4>
             <div className="space-y-2 text-sm text-text-muted">
-              <p>info@physicsteacher.com</p>
+              <p>zaid123was@gmail.com</p>
             </div>
           </div>
         </div>

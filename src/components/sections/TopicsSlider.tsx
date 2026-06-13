@@ -17,12 +17,6 @@ const topics = [
 const cardBase =
   "relative overflow-hidden"
 
-const cardFocused =
-  "bg-[rgba(16,20,28,0.78)] border-white/22"
-
-const cardBlurred =
-  "bg-[rgba(16,20,28,0.6)] border-white/6"
-
 export function TopicsSlider() {
   const sectionRef = useRef<HTMLElement>(null)
 
