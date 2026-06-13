@@ -5,6 +5,8 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { User } from "@supabase/supabase-js"
+import { supabase } from "@/lib/supabase"
 
 const navItems = [
   { label: "About", href: "#about" },
@@ -17,11 +19,30 @@ const navItems = [
 export function Header() {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60)
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user
+      setUser(u ?? null)
+      if (u) {
+        supabase.from("profiles").select("role").eq("id", u.id).single().then(({ data }) => {
+          setIsAdmin(data?.role === "admin")
+        })
+      }
+    })
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        supabase.from("profiles").select("role").eq("id", session.user.id).single().then(({ data }) => {
+          setIsAdmin(data?.role === "admin")
+        })
+      } else {
+        setIsAdmin(false)
+      }
+    })
+    return () => listener?.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -60,23 +81,37 @@ export function Header() {
                   {item.label}
                 </a>
               ))}
+              <Link href="/recordings" className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors duration-400">
+                Recordings
+              </Link>
+              {isAdmin && (
+                <Link href="/admin" className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-yellow-400 hover:text-yellow-300 transition-colors duration-400">
+                  Admin
+                </Link>
+              )}
               <div className="flex items-center gap-2 ml-6 pl-6 border-l border-border">
-                <a
-                  href="#join"
-                  className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300"
-                >
-                  Join Live
-                </a>
+                {user ? (
+                  <button onClick={() => supabase.auth.signOut()} className="px-5 py-2.5 border border-border text-text-muted text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
+                    Log Out
+                  </button>
+                ) : (
+                  <a href="#join" className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
+                    Log In
+                  </a>
+                )}
               </div>
             </nav>
 
             <div className="flex lg:hidden items-center gap-3">
-              <a
-                href="#join"
-                className="px-4 py-2 border border-border text-text-primary text-[10px] font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300"
-              >
-                Join
+            {user ? (
+              <button onClick={() => supabase.auth.signOut()} className="px-4 py-2 border border-border text-text-muted text-[10px] font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
+                Logout
+              </button>
+            ) : (
+              <a href="#join" className="px-4 py-2 border border-border text-text-primary text-[10px] font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
+                Login
               </a>
+            )}
               <button
                 onClick={() => setOpen(true)}
                 className="text-text-muted p-2"
@@ -126,6 +161,14 @@ export function Header() {
                       {item.label}
                     </a>
                   ))}
+                  <Link href="/recordings" onClick={() => setOpen(false)} className="block py-3 text-sm font-medium uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors border-b border-border">
+                    Recordings
+                  </Link>
+                  {isAdmin && (
+                    <Link href="/admin" onClick={() => setOpen(false)} className="block py-3 text-sm font-medium uppercase tracking-wider text-yellow-400 hover:text-yellow-300 transition-colors border-b border-border">
+                      Admin
+                    </Link>
+                  )}
                 </div>
                 <div className="mt-8 space-y-3">
                   <a

@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { supabase } from "@/lib/supabase"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -19,6 +20,13 @@ const grades = [
 export default function EnrollSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [grade, setGrade] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState("")
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -37,6 +45,45 @@ export default function EnrollSection() {
     return () => ctx.revert()
   }, [])
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage("")
+
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    if (authError || !authData.user) {
+      setMessage(authError?.message || "Sign up failed")
+      setLoading(false)
+      return
+    }
+
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: authData.user.id,
+      name,
+      email,
+      phone,
+      grade_board: grade,
+    })
+
+    if (profileError) {
+      setMessage(profileError.message)
+      setLoading(false)
+      return
+    }
+
+    setMessage("Account created! You can now log in.")
+    setName("")
+    setEmail("")
+    setPhone("")
+    setGrade("")
+    setPassword("")
+    setLoading(false)
+  }
+
   return (
     <section
       id="enroll"
@@ -46,40 +93,43 @@ export default function EnrollSection() {
       <div className="relative max-w-2xl mx-auto px-6">
         <div ref={contentRef} className="text-center mb-12">
           <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-text-muted mb-4">
-            Enroll
+            Sign Up
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary leading-[0.9] mb-4">
             Book a free trial.
           </h2>
           <p className="text-text-muted text-sm max-w-sm mx-auto">
-            No pressure. See the method first. Clear lessons, exam-focused
-            practice.
+            Create an account. No pressure. See the method first.
           </p>
         </div>
 
         <form
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={handleSignUp}
           className="bg-bg border border-border p-8 md:p-10"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1.5">
-                Student Name *
+                Full Name *
               </label>
               <input
                 type="text"
                 placeholder="e.g. Amal Perera"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 bg-bg-alt border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim"
                 required
               />
             </div>
             <div>
               <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1.5">
-                Parent Name *
+                Email *
               </label>
               <input
-                type="text"
-                placeholder="e.g. Mr. Perera"
+                type="email"
+                placeholder="amal@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-bg-alt border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim"
                 required
               />
@@ -94,6 +144,8 @@ export default function EnrollSection() {
               <input
                 type="tel"
                 placeholder="+94 77 XXX XXXX"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-4 py-3 bg-bg-alt border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim"
                 required
               />
@@ -103,6 +155,8 @@ export default function EnrollSection() {
                 Grade / Board *
               </label>
               <select
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
                 className="w-full px-4 py-3 bg-bg-alt border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors"
                 required
               >
@@ -116,21 +170,32 @@ export default function EnrollSection() {
 
           <div className="mb-6">
             <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1.5">
-              Message (optional)
+              Password *
             </label>
-            <textarea
-              rows={3}
-              placeholder="Any questions or special requirements..."
-              className="w-full px-4 py-3 bg-bg-alt border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors resize-none placeholder:text-text-dim"
+            <input
+              type="password"
+              placeholder="Create a password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-bg-alt border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim"
+              required
+              minLength={6}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full inline-flex items-center justify-center px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500 disabled:opacity-50"
           >
-            Submit Enrollment
+            {loading ? "Creating account..." : "Create Account"}
           </button>
+
+          {message && (
+            <p className="text-sm mt-4 text-center text-text-muted">
+              {message}
+            </p>
+          )}
 
           <p className="text-text-dim text-[10px] mt-4 text-center uppercase tracking-[0.15em]">
             Free trial — no commitment

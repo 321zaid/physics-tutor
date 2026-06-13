@@ -1,23 +1,49 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import type { User } from "@supabase/supabase-js"
+import { supabase, type Class } from "@/lib/supabase"
 
 gsap.registerPlugin(ScrollTrigger)
-
-const nextClass = {
-  topic: "A2 Physics — Oscillations & Waves",
-  date: "Saturday, 7 June 2026",
-  time: "4:00 PM – 6:00 PM (Sri Lanka Time)",
-  platform: "Zoom",
-}
 
 export function ScheduleSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const bgGlowRef = useRef<HTMLDivElement>(null)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [user, setUser] = useState<User | null>(null)
+  const [nextClass, setNextClass] = useState<Class | null>(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => listener?.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from("classes")
+      .select("*")
+      .eq("is_active", true)
+      .order("date", { ascending: true })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setNextClass(data[0])
+      })
+  }, [user])
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -28,141 +54,115 @@ export function ScheduleSection() {
           toggleActions: "play none none reverse",
         },
       })
-
-      tl.from(bgGlowRef.current, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 1.2,
-        ease: "power3.out",
-      })
-
-      tl.from(
-        titleRef.current,
-        {
-          y: 30,
-          opacity: 0,
-          duration: 0.9,
-          ease: "power4.out",
-        },
-        "-=0.6",
-      )
-
-      tl.from(
-        cardRef.current,
-        {
-          y: 60,
-          opacity: 0,
-          rotateX: -4,
-          transformPerspective: 800,
-          duration: 1.2,
-          ease: "power4.out",
-        },
-        "-=0.4",
-      )
-
-      // Stagger inner elements
+      tl.from(bgGlowRef.current, { opacity: 0, scale: 0.8, duration: 1.2, ease: "power3.out" })
+      tl.from(titleRef.current, { y: 30, opacity: 0, duration: 0.9, ease: "power4.out" }, "-=0.6")
+      tl.from(cardRef.current, { y: 60, opacity: 0, rotateX: -4, transformPerspective: 800, duration: 1.2, ease: "power4.out" }, "-=0.4")
       const innerEls = cardRef.current?.querySelectorAll(".schedule-line")
       if (innerEls) {
-        tl.from(innerEls, {
-          y: 15,
-          opacity: 0,
-          duration: 0.6,
-          stagger: 0.08,
-          ease: "power3.out",
-        }, "-=0.3")
-      }
-
-      const ctaEls = cardRef.current?.querySelectorAll(".schedule-cta")
-      if (ctaEls) {
-        tl.from(ctaEls, {
-          y: 15,
-          opacity: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power3.out",
-        }, "-=0.2")
+        tl.from(innerEls, { y: 15, opacity: 0, duration: 0.6, stagger: 0.08, ease: "power3.out" }, "-=0.3")
       }
     })
     return () => ctx.revert()
   }, [])
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    if (signInError) {
+      setError(signInError.message)
+      setLoading(false)
+      return
+    }
+    setLoading(false)
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    setNextClass(null)
+  }
+
   return (
-    <section
-      id="join"
-      ref={sectionRef}
-      className="relative py-24 md:py-32 overflow-hidden bg-bg"
-    >
+    <section id="join" ref={sectionRef} className="relative py-24 md:py-32 overflow-hidden bg-bg">
       <div
         ref={bgGlowRef}
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(199, 255, 61, 0.025) 0%, transparent 70%)",
-        }}
+        style={{ background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(199, 255, 61, 0.025) 0%, transparent 70%)" }}
       />
-
       <div className="relative max-w-7xl mx-auto px-6 lg:px-10">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-text-muted mb-4">
             Join Live
           </p>
-          <h2
-            ref={titleRef}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold text-text-primary leading-[0.9] mb-12"
-          >
-            Next class.
+          <h2 ref={titleRef} className="text-4xl sm:text-5xl md:text-6xl font-bold text-text-primary leading-[0.9] mb-12">
+            {user ? "Next class." : "Student login."}
           </h2>
 
-          <div
-            ref={cardRef}
-            className="bg-bg-alt border border-border p-8 md:p-10 text-left"
-            style={{ transformStyle: "preserve-3d" }}
-          >
-            <div className="space-y-4 mb-8">
-              <div className="schedule-line">
-                <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">
-                  Topic
-                </p>
-                <p className="text-lg md:text-xl font-semibold text-text-primary">
-                  {nextClass.topic}
-                </p>
-              </div>
-              <div className="schedule-line grid grid-cols-2 gap-4">
+          <div ref={cardRef} className="bg-bg-alt border border-border p-8 md:p-10 text-left" style={{ transformStyle: "preserve-3d" }}>
+            {!user ? (
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">
-                    Date
-                  </p>
-                  <p className="text-sm text-text-muted">{nextClass.date}</p>
+                  <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1.5">Email *</label>
+                  <input type="email" placeholder="amal@example.com" value={email} onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim" required />
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">
-                    Time
-                  </p>
-                  <p className="text-sm text-text-muted">{nextClass.time}</p>
+                  <label className="block text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1.5">Password *</label>
+                  <input type="password" placeholder="Your password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim" required />
+                </div>
+                {error && <p className="text-sm text-red-400">{error}</p>}
+                <button type="submit" disabled={loading}
+                  className="w-full inline-flex items-center justify-center px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500 disabled:opacity-50">
+                  {loading ? "Logging in..." : "Log In"}
+                </button>
+                <p className="text-text-dim text-[10px] text-center uppercase tracking-[0.15em]">
+                  Don&apos;t have an account? <a href="#enroll" className="underline">Sign up</a>
+                </p>
+              </form>
+            ) : nextClass ? (
+              <div className="space-y-4 mb-8">
+                <div className="schedule-line">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Topic</p>
+                  <p className="text-lg md:text-xl font-semibold text-text-primary">{nextClass.topic}</p>
+                </div>
+                <div className="schedule-line grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Date</p>
+                    <p className="text-sm text-text-muted">{nextClass.date}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Time</p>
+                    <p className="text-sm text-text-muted">{nextClass.time}</p>
+                  </div>
+                </div>
+                <div className="schedule-line">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Platform</p>
+                  <p className="text-sm text-text-muted">Google Meet</p>
+                </div>
+                <div className="schedule-line">
+                  <a href={nextClass.meet_link} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-8 py-4 bg-primary text-white font-semibold text-sm uppercase tracking-wider rounded-none hover:opacity-90 transition-all duration-500">
+                    Join Google Meet
+                  </a>
                 </div>
               </div>
-              <div className="schedule-line">
-                <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">
-                  Platform
-                </p>
-                <p className="text-sm text-text-muted">{nextClass.platform}</p>
+            ) : (
+              <div className="schedule-line text-center py-8">
+                <p className="text-text-muted">No upcoming class scheduled.</p>
               </div>
-            </div>
+            )}
 
-            <div className="schedule-cta flex flex-col sm:flex-row gap-3">
-              <a
-                href="#enroll"
-                className="flex-1 inline-flex items-center justify-center px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
-              >
-                Join Live Class
-              </a>
-              <a
-                href="#enroll"
-                className="flex-1 inline-flex items-center justify-center px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
-              >
-                Sign Up / Enroll Now
-              </a>
-            </div>
+            {user && (
+              <div className="schedule-line mt-6 pt-6 border-t border-border">
+                <button onClick={handleLogout}
+                  className="w-full inline-flex items-center justify-center px-8 py-3 border border-border text-text-muted font-semibold text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
+                  Log Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
