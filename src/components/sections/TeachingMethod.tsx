@@ -14,19 +14,19 @@ const steps = [
   { number: "05", title: "Exam Confidence", desc: "Repeated practice builds speed, accuracy, and control." },
 ]
 
-const SECTION_VH = 220
+const SECTION_VH = 150
 
 // Each step: [enterStart, enterEnd, holdEnd]
 // Step stays visible once entered; builds cumulatively
 const stepPhases = steps.map((_, i) => ({
-  enterStart: 0.15 + i * 0.15,
-  enterEnd: 0.15 + i * 0.15 + 0.06,
+  enterStart: 0.12 + i * 0.14,
+  enterEnd: 0.12 + i * 0.14 + 0.06,
   holdEnd: 0.96,
 }))
 
-const TITLE_END = 0.14
-const SETTLE_START = 0.92
-const EXIT_START = 0.97
+const TITLE_END = 0.11
+const SETTLE_START = 0.88
+const EXIT_START = 0.94
 
 export function TeachingMethod() {
   const sectionRef = useRef<HTMLElement>(null)

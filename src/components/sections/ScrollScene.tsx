@@ -192,7 +192,7 @@ export function ScrollScene() {
           // COMPLETE SENTENCE — visible at very end
           // =============================================
           if (completeRef.current) {
-            const completeStart = 0.88
+            const completeStart = 0.92
             let completeOpacity = 0
             let completeBlur = 8
             let completeScale = 1.06
@@ -228,7 +228,7 @@ export function ScrollScene() {
       ref={sectionRef}
       id="scene"
       className="relative overflow-hidden bg-bg-solid"
-      style={{ height: "180vh" }}
+      style={{ height: "130vh" }}
     >
       <div
         ref={pinRef}

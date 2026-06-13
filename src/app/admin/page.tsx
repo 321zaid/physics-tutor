@@ -102,12 +102,23 @@ export default function AdminPage() {
     return <div className="min-h-screen bg-bg flex items-center justify-center"><p className="text-text-muted">Loading...</p></div>
   }
 
-  if (!user || profile?.role !== "admin") {
+  if (!user) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center px-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-text-primary mb-4">Access Denied</h1>
-          <p className="text-text-muted">You need admin access to view this page.</p>
+          <p className="text-text-muted">Please log in first.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (profile?.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center px-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-text-primary mb-4">Access Denied</h1>
+          <p className="text-text-muted">Login succeeded, but this account does not have admin permission.</p>
         </div>
       </div>
     )

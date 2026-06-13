@@ -75,8 +75,11 @@ export function ScheduleSection() {
 
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     if (signInError) {
-      if (signInError.message.toLowerCase().includes("email not confirmed")) {
-        setError("Your email is not confirmed yet. Please check your inbox/spam for the confirmation email, or contact admin.")
+      const msg = signInError.message.toLowerCase()
+      if (msg.includes("email not confirmed")) {
+        setError("This account is not confirmed yet. Please contact admin or confirm the user in Supabase.")
+      } else if (msg.includes("invalid login credentials")) {
+        setError("Invalid email or password.")
       } else {
         setError("Login failed. Please check that this email is registered, confirmed, and has admin access.")
       }
