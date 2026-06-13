@@ -33,6 +33,9 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       // Sync Lenis with ScrollTrigger — critical for pinned sections
       lenis.on("scroll", ScrollTrigger.update)
 
+      // Refresh ScrollTrigger after layout settles to avoid blank gaps
+      requestAnimationFrame(() => ScrollTrigger.refresh())
+
       const raf = (time: number) => {
         lenis.raf(time)
         requestAnimationFrame(raf)

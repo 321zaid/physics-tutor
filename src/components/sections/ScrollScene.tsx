@@ -228,7 +228,7 @@ export function ScrollScene() {
       ref={sectionRef}
       id="scene"
       className="relative overflow-hidden bg-bg-solid"
-      style={{ height: "300vh" }}
+      style={{ height: "180vh" }}
     >
       <div
         ref={pinRef}

@@ -14,7 +14,7 @@ const steps = [
   { number: "05", title: "Exam Confidence", desc: "Repeated practice builds speed, accuracy, and control." },
 ]
 
-const SECTION_VH = 320
+const SECTION_VH = 220
 
 // Each step: [enterStart, enterEnd, holdEnd]
 // Step stays visible once entered; builds cumulatively
