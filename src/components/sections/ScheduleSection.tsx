@@ -17,6 +17,8 @@ export function ScheduleSection() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [resending, setResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState("")
   const [user, setUser] = useState<User | null>(null)
   const [nextClass, setNextClass] = useState<Class | null>(null)
 
@@ -69,14 +71,35 @@ export function ScheduleSection() {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setResendMessage("")
 
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     if (signInError) {
-      setError(signInError.message)
+      if (signInError.message.toLowerCase().includes("email not confirmed")) {
+        setError("Your email is not confirmed yet. Please check your inbox/spam for the confirmation email, or contact admin.")
+      } else {
+        setError("Login failed. Please check that this email is registered, confirmed, and has admin access.")
+      }
       setLoading(false)
       return
     }
     setLoading(false)
+  }
+
+  const handleResendConfirmation = async () => {
+    if (!email) return
+    setResending(true)
+    setResendMessage("")
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email,
+    })
+    if (resendError) {
+      setResendMessage(resendError.message)
+    } else {
+      setResendMessage("Confirmation email sent. Please check your inbox/spam.")
+    }
+    setResending(false)
   }
 
   const handleLogout = async () => {
@@ -114,6 +137,13 @@ export function ScheduleSection() {
                     className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim transition-colors placeholder:text-text-dim" required />
                 </div>
                 {error && <p className="text-sm text-red-400">{error}</p>}
+                {error && error.includes("email is not confirmed") && (
+                  <button type="button" onClick={handleResendConfirmation} disabled={resending}
+                    className="text-xs text-text-muted underline hover:text-text-primary transition-colors">
+                    {resending ? "Sending..." : "Resend confirmation email"}
+                  </button>
+                )}
+                {resendMessage && <p className="text-sm text-accent-lime">{resendMessage}</p>}
                 <button type="submit" disabled={loading}
                   className="w-full inline-flex items-center justify-center px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500 disabled:opacity-50">
                   {loading ? "Logging in..." : "Log In"}

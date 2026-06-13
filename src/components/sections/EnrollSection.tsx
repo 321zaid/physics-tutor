@@ -75,7 +75,11 @@ export default function EnrollSection() {
       return
     }
 
-    setMessage("Account created! You can now log in.")
+    if (!authData.session) {
+      setMessage("Account created. Please confirm your email before logging in.")
+    } else {
+      setMessage("Account created! You can now log in.")
+    }
     setName("")
     setEmail("")
     setPhone("")
