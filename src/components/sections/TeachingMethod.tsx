@@ -44,6 +44,7 @@ export function TeachingMethod() {
     const section = sectionRef.current
     const pin = pinRef.current
     const media = mediaRef.current
+    const hero = document.getElementById("hero")
     if (!section || !pin || !media) return
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -51,12 +52,13 @@ export function TeachingMethod() {
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
-        trigger: section,
+        trigger: hero || section,
         pin: pin,
         pinSpacing: false,
-        start: "top bottom",
-        end: `+=${SECTION_VH}vh`,
-        scrub: 1.2,
+        start: "bottom bottom",
+        endTrigger: section,
+        end: "bottom top",
+        scrub: 1,
         anticipatePin: 1,
         onUpdate: (self) => {
           const p = self.progress

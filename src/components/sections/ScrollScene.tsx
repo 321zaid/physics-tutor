@@ -78,6 +78,7 @@ export function ScrollScene() {
     const media = mediaRef.current
     const bgWord = bgWordRef.current
     const diagram = diagramRef.current
+    const hero = document.getElementById("hero")
     if (!section || !pin || !media || !bgWord || !diagram) return
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -85,12 +86,13 @@ export function ScrollScene() {
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
-        trigger: section,
+        trigger: hero || section,
         pin: pin,
         pinSpacing: false,
-        start: "top bottom",
-        end: "+=300vh",
-        scrub: 1.2,
+        start: "bottom bottom",
+        endTrigger: section,
+        end: "bottom top",
+        scrub: 1,
         anticipatePin: 1,
         onUpdate: (self) => {
           const p = self.progress
@@ -101,9 +103,9 @@ export function ScrollScene() {
 
           // Media: slow drift, subtle breathing
           gsap.set(media, {
-            scale: 0.92 + p * 0.16,
-            y: -20 + p * 40,
-            rotate: (p - 0.5) * 0.8,
+            scale: 0.95 + p * 0.1,
+            y: -10 + p * 20,
+            rotate: (p - 0.5) * 0.6,
           })
 
           // Grid overlay: slowly increases, then fades
@@ -128,17 +130,17 @@ export function ScrollScene() {
           }
           gsap.set(bgWord, {
             opacity: wordOpacity,
-            y: -40 + p * 80,
-            scale: 0.85 + p * 0.3,
-            rotateY: (p - 0.5) * 4,
-            rotateX: (p - 0.5) * 2,
+            y: -25 + p * 50,
+            scale: 0.92 + p * 0.16,
+            rotateY: (p - 0.5) * 2,
+            rotateX: (p - 0.5) * 1,
           })
 
           // Diagram: slow reveal, subtle breathing
           gsap.set(diagram, {
             opacity: 0.15 + p * 0.35 * (p < 0.7 ? 1 : Math.max(0, 1 - (p - 0.7) * 2)),
-            y: -15 + p * 30,
-            scale: 0.95 + p * 0.1,
+            y: -10 + p * 20,
+            scale: 0.97 + p * 0.06,
           })
 
           // Equations: fade in slowly, stay visible
@@ -161,15 +163,15 @@ export function ScrollScene() {
             let opacity = 0
             let blurAmt = 10
             let scale = 1.08
-            let yOff = 30
+            let yOff = 20
 
             if (p >= inStart && p < inEnd) {
               const t = (p - inStart) / (inEnd - inStart)
               const eased = 1 - Math.pow(1 - t, 3)
               opacity = eased
               blurAmt = 10 - eased * 10
-              scale = 1.08 - eased * 0.08
-              yOff = 30 - eased * 30
+              scale = 1.04 - eased * 0.04
+              yOff = 20 - eased * 20
             } else if (p >= inEnd && p < holdEnd) {
               opacity = 1
               blurAmt = 0
@@ -179,8 +181,8 @@ export function ScrollScene() {
               const t = (p - holdEnd) / (1 - holdEnd)
               opacity = 1 - t * 0.3
               blurAmt = t * 3
-              scale = 1 + t * 0.02
-              yOff = -t * 10
+              scale = 1 + t * 0.015
+              yOff = -t * 8
             }
 
             gsap.set(wrapper, {
@@ -197,14 +199,14 @@ export function ScrollScene() {
           if (completeRef.current) {
             const completeStart = 0.92
             let completeOpacity = 0
-            let completeBlur = 8
-            let completeScale = 1.06
+            let completeBlur = 6
+            let completeScale = 1.03
             if (p >= completeStart) {
               const t = (p - completeStart) / (1 - completeStart)
               const eased = Math.min(1, t * 1.8)
               completeOpacity = eased * 0.7
-              completeBlur = 8 - eased * 8
-              completeScale = 1.06 - eased * 0.06
+              completeBlur = 6 - eased * 6
+              completeScale = 1.03 - eased * 0.03
             }
             gsap.set(completeRef.current, {
               opacity: completeOpacity,
@@ -308,8 +310,8 @@ export function ScrollScene() {
               style={{
                 opacity: 0,
                 filter: "blur(10px)",
-                scale: 1.08,
-                y: 40,
+                scale: 1.04,
+                y: 20,
                 willChange: "transform, opacity, filter",
               }}
             >
@@ -327,8 +329,8 @@ export function ScrollScene() {
             ref={completeRef}
             style={{
               opacity: 0,
-              filter: "blur(8px)",
-              scale: 1.06,
+              filter: "blur(6px)",
+              scale: 1.03,
               willChange: "transform, opacity, filter",
             }}
           >
