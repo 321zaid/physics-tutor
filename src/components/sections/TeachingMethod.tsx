@@ -42,24 +42,18 @@ export function TeachingMethod() {
 
   useEffect(() => {
     const section = sectionRef.current
-    const pin = pinRef.current
     const media = mediaRef.current
-    const hero = document.getElementById("hero")
-    if (!section || !pin || !media) return
+    if (!section || !media) return
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (prefersReduced) return
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
-        trigger: hero || section,
-        pin: pin,
-        pinSpacing: false,
-        start: "bottom bottom",
-        endTrigger: section,
+        trigger: section,
+        start: "top bottom",
         end: "bottom top",
-        scrub: 1,
-        anticipatePin: 1,
+        scrub: 0.8,
         onUpdate: (self) => {
           const p = self.progress
 
@@ -225,7 +219,7 @@ export function TeachingMethod() {
     >
       <div
         ref={pinRef}
-        className="sticky top-0 h-screen flex items-center overflow-hidden"
+        className="h-screen flex items-center overflow-hidden"
       >
         {/* Background media layer */}
         <div

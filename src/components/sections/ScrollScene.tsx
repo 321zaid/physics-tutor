@@ -74,26 +74,20 @@ export function ScrollScene() {
 
   useEffect(() => {
     const section = sectionRef.current
-    const pin = pinRef.current
     const media = mediaRef.current
     const bgWord = bgWordRef.current
     const diagram = diagramRef.current
-    const hero = document.getElementById("hero")
-    if (!section || !pin || !media || !bgWord || !diagram) return
+    if (!section || !media || !bgWord || !diagram) return
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (prefersReduced) return
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
-        trigger: hero || section,
-        pin: pin,
-        pinSpacing: false,
-        start: "bottom bottom",
-        endTrigger: section,
+        trigger: section,
+        start: "top bottom",
         end: "bottom top",
-        scrub: 1,
-        anticipatePin: 1,
+        scrub: 0.8,
         onUpdate: (self) => {
           const p = self.progress
 
@@ -237,7 +231,7 @@ export function ScrollScene() {
     >
       <div
         ref={pinRef}
-        className="sticky top-0 h-screen flex items-center justify-center overflow-hidden"
+        className="h-screen flex items-center justify-center overflow-hidden"
       >
         {/* ===== BACKGROUND MEDIA ===== */}
         <div

@@ -17,44 +17,59 @@ export function Hero() {
   const bgLayersRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+
     const ctx = gsap.context(() => {
-      // Immersive entrance timeline
+      if (prefersReduced) {
+        gsap.set([labelRef.current, subtitleRef.current, scrollRef.current], { autoAlpha: 1, y: 0 })
+        if (headlineRef.current) gsap.set(headlineRef.current.querySelectorAll(".hero-line"), { autoAlpha: 1, y: 0 })
+        if (ctaRef.current) gsap.set(ctaRef.current.children, { autoAlpha: 1, y: 0 })
+        return
+      }
+
+      const headlineEls = headlineRef.current?.querySelectorAll(".hero-line")
+
+      // Set all text hidden immediately — prevents flash before timeline plays
+      gsap.set(labelRef.current, { autoAlpha: 0, y: 16 })
+      if (headlineEls) gsap.set(headlineEls, { autoAlpha: 0, y: 24 })
+      gsap.set(subtitleRef.current, { autoAlpha: 0, y: 16 })
+      if (ctaRef.current) gsap.set(ctaRef.current.children, { autoAlpha: 0, y: 14 })
+      gsap.set(scrollRef.current, { autoAlpha: 0 })
+
+      // Immersive entrance timeline — visual starts immediately, text follows
       const tl = gsap.timeline({ defaults: { ease: "power4.out" } })
 
       tl.from(mediaRef.current, {
         scale: 1.15,
         duration: 2,
         ease: "power3.out",
-        delay: 0.3,
       })
 
-      tl.from(
+      tl.to(
         labelRef.current,
-        { y: 30, opacity: 0, duration: 1 },
-        "-=1.2",
+        { y: 0, autoAlpha: 1, duration: 0.9 },
+        0.15,
       )
 
-      const headlineEls = headlineRef.current?.querySelectorAll(".hero-line")
       if (headlineEls) {
-        tl.from(
+        tl.to(
           headlineEls,
-          { y: 80, opacity: 0, duration: 1.4, stagger: 0.15 },
-          "-=0.6",
+          { y: 0, autoAlpha: 1, duration: 1.2, stagger: 0.1 },
+          0.25,
         )
       }
 
-      tl.from(subtitleRef.current, { y: 30, opacity: 0, duration: 1 }, "-=0.8")
+      tl.to(subtitleRef.current, { y: 0, autoAlpha: 1, duration: 0.9 }, 0.35)
 
-      const ctaChildren = ctaRef.current?.children
-      if (ctaChildren) {
-        tl.from(
-          ctaChildren,
-          { y: 20, opacity: 0, duration: 0.8, stagger: 0.1 },
-          "-=0.5",
+      if (ctaRef.current) {
+        tl.to(
+          ctaRef.current.children,
+          { y: 0, autoAlpha: 1, duration: 0.7, stagger: 0.08 },
+          0.45,
         )
       }
 
-      tl.from(scrollRef.current, { opacity: 0, duration: 0.6 }, "-=0.3")
+      tl.to(scrollRef.current, { autoAlpha: 1, duration: 0.5 }, 0.55)
 
       // Subtle parallax on scroll for the media layer
       gsap.to(mediaRef.current, {
@@ -131,6 +146,7 @@ export function Hero() {
         <p
           ref={labelRef}
           className="text-xs font-medium uppercase tracking-[0.3em] text-text-muted mb-6"
+          style={{ opacity: 0 }}
         >
           Physics Teacher
         </p>
@@ -139,13 +155,14 @@ export function Hero() {
           ref={headlineRef}
           className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-text-primary leading-[0.9] mb-6 will-change-transform"
         >
-          <span className="hero-line block">Physics,</span>
-          <span className="hero-line block text-text-primary">controlled.</span>
+          <span className="hero-line block" style={{ opacity: 0 }}>Physics,</span>
+          <span className="hero-line block text-text-primary" style={{ opacity: 0 }}>controlled.</span>
         </h1>
 
         <p
           ref={subtitleRef}
           className="text-base md:text-lg text-text-muted max-w-lg mx-auto leading-relaxed"
+          style={{ opacity: 0 }}
         >
           Turn confusion into clarity. Exam-focused. Visually taught. Clearly
           structured.
@@ -158,12 +175,14 @@ export function Hero() {
           <a
             href="#enroll"
             className="inline-flex items-center gap-2 px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
+            style={{ opacity: 0 }}
           >
             Book Free Trial
           </a>
           <a
             href="#join"
             className="inline-flex items-center gap-2 px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
+            style={{ opacity: 0 }}
           >
             Join Live Class
           </a>
@@ -173,6 +192,7 @@ export function Hero() {
       <div
         ref={scrollRef}
         className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+        style={{ opacity: 0 }}
       >
         <span className="text-[10px] text-text-dim uppercase tracking-[0.3em]">
           Scroll
