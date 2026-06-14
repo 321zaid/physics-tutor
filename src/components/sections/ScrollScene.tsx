@@ -80,14 +80,17 @@ export function ScrollScene() {
     const diagram = diagramRef.current
     if (!section || !pin || !media || !bgWord || !diagram) return
 
+    const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    if (prefersReduced) return
+
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
         pin: pin,
         pinSpacing: false,
-        start: "top top",
+        start: "top bottom",
         end: "+=300vh",
-        scrub: 2.5,
+        scrub: 1.2,
         anticipatePin: 1,
         onUpdate: (self) => {
           const p = self.progress
@@ -98,9 +101,9 @@ export function ScrollScene() {
 
           // Media: slow drift, subtle breathing
           gsap.set(media, {
-            scale: 0.88 + p * 0.24,
-            y: -50 + p * 100,
-            rotate: (p - 0.5) * 1.2,
+            scale: 0.92 + p * 0.16,
+            y: -20 + p * 40,
+            rotate: (p - 0.5) * 0.8,
           })
 
           // Grid overlay: slowly increases, then fades
@@ -110,7 +113,7 @@ export function ScrollScene() {
           if (gridOverlayRef.current) {
             gsap.set(gridOverlayRef.current, {
               opacity: gridOpacity,
-              y: -10 + p * 30,
+              y: -5 + p * 15,
             })
           }
 
@@ -125,17 +128,17 @@ export function ScrollScene() {
           }
           gsap.set(bgWord, {
             opacity: wordOpacity,
-            y: -80 + p * 160,
-            scale: 0.8 + p * 0.4,
-            rotateY: (p - 0.5) * 8,
-            rotateX: (p - 0.5) * 3,
+            y: -40 + p * 80,
+            scale: 0.85 + p * 0.3,
+            rotateY: (p - 0.5) * 4,
+            rotateX: (p - 0.5) * 2,
           })
 
           // Diagram: slow reveal, subtle breathing
           gsap.set(diagram, {
             opacity: 0.15 + p * 0.35 * (p < 0.7 ? 1 : Math.max(0, 1 - (p - 0.7) * 2)),
-            y: -30 + p * 60,
-            scale: 0.92 + p * 0.15,
+            y: -15 + p * 30,
+            scale: 0.95 + p * 0.1,
           })
 
           // Equations: fade in slowly, stay visible
@@ -158,7 +161,7 @@ export function ScrollScene() {
             let opacity = 0
             let blurAmt = 10
             let scale = 1.08
-            let yOff = 40
+            let yOff = 30
 
             if (p >= inStart && p < inEnd) {
               const t = (p - inStart) / (inEnd - inStart)
@@ -166,7 +169,7 @@ export function ScrollScene() {
               opacity = eased
               blurAmt = 10 - eased * 10
               scale = 1.08 - eased * 0.08
-              yOff = 40 - eased * 40
+              yOff = 30 - eased * 30
             } else if (p >= inEnd && p < holdEnd) {
               opacity = 1
               blurAmt = 0

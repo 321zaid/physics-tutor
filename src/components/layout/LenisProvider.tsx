@@ -35,6 +35,7 @@ export function LenisProvider({ children }: { children: ReactNode }) {
 
       // Refresh ScrollTrigger after layout settles to avoid blank gaps
       requestAnimationFrame(() => ScrollTrigger.refresh())
+      setTimeout(() => ScrollTrigger.refresh(), 500)
 
       const raf = (time: number) => {
         lenis.raf(time)
