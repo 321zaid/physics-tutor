@@ -23,7 +23,6 @@ export default function AdminPage() {
   const [students, setStudents] = useState<Profile[]>([])
   const [liveClasses, setLiveClasses] = useState<LiveClass[]>([])
   const [classes, setClasses] = useState<{ id: string; topic: string; date: string; time: string; meet_link: string; is_active: boolean }[]>([])
-  const [recordings, setRecordings] = useState<{ id: string; title: string; date: string; link: string; topic: string | null }[]>([])
 
   const [search, setSearch] = useState("")
   const [filterSubject, setFilterSubject] = useState("")
@@ -41,16 +40,14 @@ export default function AdminPage() {
   const [editingLiveId, setEditingLiveId] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
-    const [s, l, c, r] = await Promise.all([
+    const [s, l, c] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("live_classes").select("*").order("created_at", { ascending: false }),
       supabase.from("classes").select("*").order("date", { ascending: false }),
-      supabase.from("recordings").select("*").order("date", { ascending: false }),
     ])
     if (s.data) setStudents(s.data)
     if (l.data) setLiveClasses(l.data)
     if (c.data) setClasses(c.data)
-    if (r.data) setRecordings(r.data)
   }, [])
 
   useEffect(() => {
@@ -483,23 +480,19 @@ export default function AdminPage() {
           )}
         </section>
 
-        {/* RECORDINGS & CLASSES — kept from previous version */}
-        <RecordingsClassesSection loadData={loadData} classes={classes} recordings={recordings} />
+        {/* CLASS MANAGEMENT */}
+        <ClassesSection loadData={loadData} classes={classes} />
 
       </div>
     </div>
   )
 }
 
-function RecordingsClassesSection({ loadData: parentLoad, classes, recordings }: { loadData: () => void; classes: { id: string; topic: string; date: string; time: string; meet_link: string; is_active: boolean }[]; recordings: { id: string; title: string; date: string; link: string; topic: string | null }[] }) {
+function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => void; classes: { id: string; topic: string; date: string; time: string; meet_link: string; is_active: boolean }[] }) {
   const [topic, setTopic] = useState("")
   const [classDate, setClassDate] = useState("")
   const [classTime, setClassTime] = useState("")
   const [meetLink, setMeetLink] = useState("")
-  const [recTitle, setRecTitle] = useState("")
-  const [recDate, setRecDate] = useState("")
-  const [recLink, setRecLink] = useState("")
-  const [recTopic, setRecTopic] = useState("")
 
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -513,90 +506,42 @@ function RecordingsClassesSection({ loadData: parentLoad, classes, recordings }:
     parentLoad()
   }
 
-  const createRecording = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await supabase.from("recordings").insert({ title: recTitle, date: recDate, link: recLink, topic: recTopic || null })
-    setRecTitle(""); setRecDate(""); setRecLink(""); setRecTopic("")
-    parentLoad()
-  }
-
-  const deleteRecording = async (id: string) => {
-    await supabase.from("recordings").delete().eq("id", id)
-    parentLoad()
-  }
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-      <section className="bg-bg-alt border border-border p-5">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">Create Class</h2>
-        <form onSubmit={createClass} className="space-y-3">
-          <input placeholder="Topic" value={topic} onChange={(e) => setTopic(e.target.value)}
+    <section className="bg-bg-alt border border-border p-5 mb-8">
+      <h2 className="text-lg font-semibold text-text-primary mb-4">Create Class</h2>
+      <form onSubmit={createClass} className="space-y-3">
+        <input placeholder="Topic" value={topic} onChange={(e) => setTopic(e.target.value)}
+          className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
+        <div className="grid grid-cols-2 gap-3">
+          <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)}
             className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-          <div className="grid grid-cols-2 gap-3">
-            <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)}
-              className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-            <input type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)}
-              className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-          </div>
-          <input placeholder="Google Meet link" value={meetLink} onChange={(e) => setMeetLink(e.target.value)}
+          <input type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)}
             className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-          <button type="submit" className="w-full px-8 py-3 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
-            Publish Class
-          </button>
-        </form>
-
-        <h3 className="text-sm font-semibold text-text-primary mt-6 mb-3">Existing Classes</h3>
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {classes.length === 0 ? <p className="text-text-muted text-sm py-4">No classes yet.</p> : (
-            classes.map((c) => (
-              <div key={c.id} className="flex items-center justify-between bg-bg px-4 py-3 border border-border text-sm">
-                <div>
-                  <p className="text-text-primary font-medium">{c.topic}</p>
-                  <p className="text-text-muted text-xs">{c.date} at {c.time}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {c.is_active && <span className="text-[10px] uppercase tracking-wider text-green-400">Active</span>}
-                  <button onClick={() => deleteClass(c.id)} className="text-xs text-red-400 hover:text-red-300">Delete</button>
-                </div>
-              </div>
-            ))
-          )}
         </div>
-      </section>
+        <input placeholder="Google Meet link" value={meetLink} onChange={(e) => setMeetLink(e.target.value)}
+          className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
+        <button type="submit" className="w-full px-8 py-3 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
+          Publish Class
+        </button>
+      </form>
 
-      <section className="bg-bg-alt border border-border p-5">
-        <h2 className="text-lg font-semibold text-text-primary mb-4">Add Recording</h2>
-        <form onSubmit={createRecording} className="space-y-3">
-          <input placeholder="Recording title" value={recTitle} onChange={(e) => setRecTitle(e.target.value)}
-            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-          <div className="grid grid-cols-2 gap-3">
-            <input type="date" value={recDate} onChange={(e) => setRecDate(e.target.value)}
-              className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-            <input placeholder="Topic" value={recTopic} onChange={(e) => setRecTopic(e.target.value)}
-              className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
-          </div>
-          <input placeholder="Google Drive link" value={recLink} onChange={(e) => setRecLink(e.target.value)}
-            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-          <button type="submit" className="w-full px-8 py-3 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
-            Add Recording
-          </button>
-        </form>
-
-        <h3 className="text-sm font-semibold text-text-primary mt-6 mb-3">Existing Recordings</h3>
-        <div className="space-y-2 max-h-60 overflow-y-auto">
-          {recordings.length === 0 ? <p className="text-text-muted text-sm py-4">No recordings yet.</p> : (
-            recordings.map((r) => (
-              <div key={r.id} className="flex items-center justify-between bg-bg px-4 py-3 border border-border text-sm">
-                <div>
-                  <p className="text-text-primary font-medium">{r.title}</p>
-                  <p className="text-text-muted text-xs">{r.date}</p>
-                </div>
-                <button onClick={() => deleteRecording(r.id)} className="text-xs text-red-400 hover:text-red-300">Delete</button>
+      <h3 className="text-sm font-semibold text-text-primary mt-6 mb-3">Existing Classes</h3>
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+        {classes.length === 0 ? <p className="text-text-muted text-sm py-4">No classes yet.</p> : (
+          classes.map((c) => (
+            <div key={c.id} className="flex items-center justify-between bg-bg px-4 py-3 border border-border text-sm">
+              <div>
+                <p className="text-text-primary font-medium">{c.topic}</p>
+                <p className="text-text-muted text-xs">{c.date} at {c.time}</p>
               </div>
-            ))
-          )}
-        </div>
-      </section>
-    </div>
+              <div className="flex items-center gap-2">
+                {c.is_active && <span className="text-[10px] uppercase tracking-wider text-green-400">Active</span>}
+                <button onClick={() => deleteClass(c.id)} className="text-xs text-red-400 hover:text-red-300">Delete</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
   )
 }

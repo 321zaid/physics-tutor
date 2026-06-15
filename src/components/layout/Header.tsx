@@ -87,9 +87,6 @@ export function Header() {
                   {item.label}
                 </a>
               ))}
-              <Link href="/recordings" className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors duration-400">
-                Recordings
-              </Link>
               {isAdmin && (
                 <Link href="/admin" className="px-4 py-2 text-xs font-medium uppercase tracking-wider text-yellow-400 hover:text-yellow-300 transition-colors duration-400">
                   Admin
@@ -167,9 +164,6 @@ export function Header() {
                       {item.label}
                     </a>
                   ))}
-                  <Link href="/recordings" onClick={() => setOpen(false)} className="block py-3 text-sm font-medium uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors border-b border-border">
-                    Recordings
-                  </Link>
                   {isAdmin && (
                     <Link href="/admin" onClick={() => setOpen(false)} className="block py-3 text-sm font-medium uppercase tracking-wider text-yellow-400 hover:text-yellow-300 transition-colors border-b border-border">
                       Admin
