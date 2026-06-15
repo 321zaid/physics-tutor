@@ -198,7 +198,7 @@ export function ScheduleSection() {
                   </a>
                 </div>
               </div>
-            ) : role === "super_admin" || role === "admin" ? (
+            ) : user.email === "zaid123was@gmail.com" || role === "super_admin" || role === "admin" ? (
               <div className="schedule-line text-center py-8 space-y-4">
                 <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
                 <p className="text-text-muted">

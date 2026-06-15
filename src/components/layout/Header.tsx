@@ -33,16 +33,18 @@ export function Header() {
       const u = data.session?.user
       setUser(u ?? null)
       if (u) {
+        setIsAdmin(u.email === "zaid123was@gmail.com")
         supabase.from("profiles").select("role").eq("id", u.id).single().then(({ data }) => {
-          setIsAdmin(data?.role === "admin" || data?.role === "super_admin")
+          setIsAdmin(data?.role === "admin" || data?.role === "super_admin" || u.email === "zaid123was@gmail.com")
         })
       }
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) {
+        setIsAdmin(session.user.email === "zaid123was@gmail.com")
         supabase.from("profiles").select("role").eq("id", session.user.id).single().then(({ data }) => {
-          setIsAdmin(data?.role === "admin" || data?.role === "super_admin")
+          setIsAdmin(data?.role === "admin" || data?.role === "super_admin" || session.user.email === "zaid123was@gmail.com")
         })
       } else {
         setIsAdmin(false)

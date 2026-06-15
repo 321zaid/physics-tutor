@@ -58,7 +58,7 @@ export default function AdminPage() {
       if (u) {
         const { data: p } = await supabase.from("profiles").select("*").eq("id", u.id).single()
         setProfile(p)
-        if (p?.role === "admin" || p?.role === "super_admin") loadData()
+        if (u?.email === ZAID_EMAIL || p?.role === "admin" || p?.role === "super_admin") loadData()
       }
       setLoading(false)
     })
@@ -196,7 +196,7 @@ export default function AdminPage() {
     )
   }
 
-  if (profile?.role !== "admin" && profile?.role !== "super_admin") {
+  if (user?.email !== ZAID_EMAIL && profile?.role !== "admin" && profile?.role !== "super_admin") {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center px-6">
         <div className="text-center max-w-md">

