@@ -31,7 +31,7 @@ export function Hero() {
 
       // Set all text hidden immediately — prevents flash before timeline plays
       gsap.set(labelRef.current, { autoAlpha: 0, y: 16 })
-      if (headlineEls) gsap.set(headlineEls, { autoAlpha: 0, y: 24 })
+      if (headlineEls) gsap.set(headlineEls, { autoAlpha: 0, y: 16 })
       gsap.set(subtitleRef.current, { autoAlpha: 0, y: 16 })
       if (ctaRef.current) gsap.set(ctaRef.current.children, { autoAlpha: 0, y: 14 })
       gsap.set(scrollRef.current, { autoAlpha: 0 })
