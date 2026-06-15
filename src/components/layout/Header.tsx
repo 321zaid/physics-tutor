@@ -34,7 +34,7 @@ export function Header() {
       setUser(u ?? null)
       if (u) {
         supabase.from("profiles").select("role").eq("id", u.id).single().then(({ data }) => {
-          setIsAdmin(data?.role === "admin")
+          setIsAdmin(data?.role === "admin" || data?.role === "super_admin")
         })
       }
     })
@@ -42,7 +42,7 @@ export function Header() {
       setUser(session?.user ?? null)
       if (session?.user) {
         supabase.from("profiles").select("role").eq("id", session.user.id).single().then(({ data }) => {
-          setIsAdmin(data?.role === "admin")
+          setIsAdmin(data?.role === "admin" || data?.role === "super_admin")
         })
       } else {
         setIsAdmin(false)

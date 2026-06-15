@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic"
 import { Hero } from "@/components/sections/Hero"
+import { LiveClassBanner } from "@/components/sections/LiveClassBanner"
 import { ScrollScene } from "@/components/sections/ScrollScene"
 import { AboutTeacher } from "@/components/sections/AboutTeacher"
 import { TopicsSlider } from "@/components/sections/TopicsSlider"
@@ -17,6 +18,7 @@ export default function HomePage() {
     <>
       <div className="relative flex flex-col">
         <Hero />
+        <LiveClassBanner />
         <ScrollScene />
         <AboutTeacher />
         <TopicsSlider />

@@ -26,6 +26,11 @@ export type Profile = {
   role: "student" | "admin" | "super_admin"
   access: boolean | null
   created_at: string
+  last_login: string | null
+  subject: string | null
+  curriculum: string | null
+  fee_paid: boolean | null
+  notes: string | null
 }
 
 export type Class = {
@@ -46,6 +51,20 @@ export type Recording = {
   link: string
   topic: string | null
   created_at: string
+}
+
+export type LiveClass = {
+  id: string
+  title: string
+  subject: string
+  curriculum: string
+  join_link: string
+  is_live: boolean | null
+  start_time: string | null
+  end_time: string | null
+  notes: string | null
+  created_by: string | null
+  created_at: string | null
 }
 
 export type Payment = {
