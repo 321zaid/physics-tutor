@@ -196,8 +196,8 @@ export function ScrollScene() {
           // COMPLETE SENTENCE — visible early, fades away
           // =============================================
           if (completeRef.current) {
-            const fadeStart = 0.15
-            const fadeEnd = 0.60
+            const fadeStart = 0.20
+            const fadeEnd = 0.35
 
             let completeOpacity = 0.85
             let completeBlur = 0
@@ -205,10 +205,9 @@ export function ScrollScene() {
 
             if (p >= fadeStart) {
               const t = Math.min(1, (p - fadeStart) / (fadeEnd - fadeStart))
-              const eased = Math.pow(t, 1.5)
-              completeOpacity = 0.85 * (1 - eased)
-              completeBlur = eased * 2
-              completeScale = 1 - eased * 0.02
+              completeOpacity = 0.85 * (1 - t)
+              completeBlur = t * 2
+              completeScale = 1 - t * 0.02
             }
 
             gsap.set(completeRef.current, {
