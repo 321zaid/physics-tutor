@@ -44,6 +44,16 @@ export default function AdminPage() {
     }
   }, [])
 
+  const toggleAccess = async (studentId: string, currentAccess: boolean | null) => {
+    await supabase.from("profiles").update({ access: !currentAccess }).eq("id", studentId)
+    loadData()
+  }
+
+  const updateRole = async (studentId: string, newRole: string) => {
+    await supabase.from("profiles").update({ role: newRole }).eq("id", studentId)
+    loadData()
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       const u = data.session?.user ?? null
@@ -51,7 +61,7 @@ export default function AdminPage() {
       if (u) {
         const { data: p } = await supabase.from("profiles").select("*").eq("id", u.id).single()
         setProfile(p)
-        if (p?.role === "admin") {
+        if (p?.role === "admin" || p?.role === "super_admin") {
           loadData()
         }
       }
@@ -113,7 +123,7 @@ export default function AdminPage() {
     )
   }
 
-  if (profile?.role !== "admin") {
+  if (profile?.role !== "admin" && profile?.role !== "super_admin") {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center px-6">
         <div className="text-center">
@@ -207,28 +217,54 @@ export default function AdminPage() {
                   <th className="py-3 pr-4">Name</th>
                   <th className="py-3 pr-4">Email</th>
                   <th className="py-3 pr-4">Grade</th>
-                  <th className="py-3 pr-4">Phone</th>
-                  <th className="py-3 pr-4">Status</th>
-                  <th className="py-3">Action</th>
+                  <th className="py-3 pr-4">Role</th>
+                  <th className="py-3 pr-4">Access</th>
+                  <th className="py-3 pr-4">Payment</th>
+                  <th className="py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((s) => (
+                {students.filter((s) => s.role !== "super_admin").map((s) => (
                   <tr key={s.id} className="border-b border-border">
                     <td className="py-3 pr-4 text-text-primary">{s.name}</td>
                     <td className="py-3 pr-4 text-text-muted">{s.email}</td>
                     <td className="py-3 pr-4 text-text-muted">{s.grade_board || "-"}</td>
-                    <td className="py-3 pr-4 text-text-muted">{s.phone || "-"}</td>
+                    <td className="py-3 pr-4">
+                      <span className={`text-[10px] uppercase tracking-wider ${s.role === "admin" ? "text-blue-400" : "text-text-dim"}`}>
+                        {s.role}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <button onClick={() => toggleAccess(s.id, s.access)}
+                        className={`text-[10px] uppercase tracking-wider underline ${s.access ? "text-green-400" : "text-red-400"}`}>
+                        {s.access ? "Enabled" : "Disabled"}
+                      </button>
+                    </td>
                     <td className="py-3 pr-4">
                       <span className={`text-[10px] uppercase tracking-wider ${payments[s.id] === "paid" ? "text-green-400" : "text-yellow-400"}`}>
                         {payments[s.id] === "paid" ? "Paid" : "Pending"}
                       </span>
                     </td>
-                    <td className="py-3">
+                    <td className="py-3 flex flex-wrap gap-2">
                       <button onClick={() => togglePayment(s.id, payments[s.id] || "pending")}
                         className="text-xs text-text-primary hover:text-text-muted underline">
-                        {payments[s.id] === "paid" ? "Mark Unpaid" : "Mark Paid"}
+                        {payments[s.id] === "paid" ? "Unpaid" : "Paid"}
                       </button>
+                      {profile?.role === "super_admin" && (
+                        <>
+                          {s.role === "admin" ? (
+                            <button onClick={() => updateRole(s.id, "student")}
+                              className="text-xs text-red-400 hover:text-red-300 underline">
+                              Remove Admin
+                            </button>
+                          ) : (
+                            <button onClick={() => updateRole(s.id, "admin")}
+                              className="text-xs text-blue-400 hover:text-blue-300 underline">
+                              Make Admin
+                            </button>
+                          )}
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

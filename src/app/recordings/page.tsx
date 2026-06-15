@@ -7,6 +7,7 @@ import { supabase, type Recording } from "@/lib/supabase"
 export default function RecordingsPage() {
   const [recordings, setRecordings] = useState<Recording[]>([])
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<{ access: boolean | null } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -14,8 +15,12 @@ export default function RecordingsPage() {
       const u = data.session?.user
       setUser(u ?? null)
       if (u) {
-        const { data: r } = await supabase.from("recordings").select("*").order("date", { ascending: false })
-        if (r) setRecordings(r)
+        const { data: p } = await supabase.from("profiles").select("access").eq("id", u.id).single()
+        setProfile(p)
+        if (p?.access) {
+          const { data: r } = await supabase.from("recordings").select("*").order("date", { ascending: false })
+          if (r) setRecordings(r)
+        }
       }
       setLoading(false)
     })
@@ -34,6 +39,17 @@ export default function RecordingsPage() {
           <a href="#join" className="inline-flex items-center justify-center px-8 py-3.5 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
             Go to Login
           </a>
+        </div>
+      </div>
+    )
+  }
+
+  if (profile && !profile.access) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <h1 className="text-3xl font-bold text-text-primary mb-4">Access Pending</h1>
+          <p className="text-text-muted">Your access to recordings is currently disabled. Please contact the admin to enable it.</p>
         </div>
       </div>
     )

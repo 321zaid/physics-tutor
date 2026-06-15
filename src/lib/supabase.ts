@@ -23,7 +23,8 @@ export type Profile = {
   email: string
   phone: string | null
   grade_board: string | null
-  role: "student" | "admin"
+  role: "student" | "admin" | "super_admin"
+  access: boolean | null
   created_at: string
 }
 
