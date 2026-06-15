@@ -83,7 +83,7 @@ export function ScrollScene() {
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
-        start: "top bottom",
+        start: "top 85%",
         end: "bottom top",
         scrub: 0.8,
         onUpdate: (self) => {
