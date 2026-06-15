@@ -196,8 +196,8 @@ export function ScrollScene() {
           // COMPLETE SENTENCE — visible early, fades away
           // =============================================
           if (completeRef.current) {
-            const fadeStart = 0.35
-            const fadeEnd = 0.80
+            const fadeStart = 0.15
+            const fadeEnd = 0.60
 
             let completeOpacity = 0.85
             let completeBlur = 0
