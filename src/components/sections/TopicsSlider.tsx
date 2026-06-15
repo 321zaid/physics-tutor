@@ -55,13 +55,13 @@ export function TopicsSlider() {
               )}
               style={{
                 background: focused
-                  ? "rgba(20,26,36,0.82)"
-                  : "rgba(14,18,26,0.65)",
+                  ? "rgba(22,28,38,0.82)"
+                  : "rgba(18,24,34,0.74)",
                 backdropFilter: focused ? "blur(28px)" : "blur(18px)",
                 WebkitBackdropFilter: focused ? "blur(28px)" : "blur(18px)",
                 border: focused
                   ? "1px solid rgba(255,255,255,0.22)"
-                  : "1px solid rgba(255,255,255,0.06)",
+                  : "1px solid rgba(255,255,255,0.10)",
                 boxShadow: focused
                   ? "0 36px 100px rgba(0,0,0,0.65), 0 0 60px rgba(199,255,61,0.03)"
                   : "0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)",
@@ -73,7 +73,7 @@ export function TopicsSlider() {
                   background: focused
                     ? "linear-gradient(135deg, rgba(199,255,61,0.06) 0%, transparent 50%)"
                     : "linear-gradient(135deg, rgba(199,255,61,0.02) 0%, transparent 50%)",
-                  opacity: focused ? 1 : 0.4,
+                  opacity: focused ? 1 : 0.55,
                   transition: "opacity 1s cubic-bezier(0.16,1,0.3,1)",
                 }}
               />
@@ -83,8 +83,8 @@ export function TopicsSlider() {
                   className="text-[10px] font-medium uppercase tracking-[0.2em] mb-4 block"
                   style={{
                     color: focused
-                      ? "rgba(255,255,255,0.5)"
-                      : "rgba(255,255,255,0.25)",
+                      ? "rgba(255,255,255,0.6)"
+                      : "rgba(255,255,255,0.40)",
                     transition: "color 0.8s cubic-bezier(0.16,1,0.3,1)",
                   }}
                 >
@@ -95,7 +95,7 @@ export function TopicsSlider() {
                   style={{
                     color: focused
                       ? "#F5F5F0"
-                      : "rgba(245,245,240,0.55)",
+                      : "rgba(245,245,240,0.75)",
                     transition: "color 0.8s cubic-bezier(0.16,1,0.3,1)",
                   }}
                 >
@@ -105,8 +105,8 @@ export function TopicsSlider() {
                   className="text-sm leading-relaxed"
                   style={{
                     color: focused
-                      ? "rgba(245,245,240,0.7)"
-                      : "rgba(245,245,240,0.3)",
+                      ? "rgba(245,245,240,0.8)"
+                      : "rgba(245,245,240,0.55)",
                     transition: "color 0.8s cubic-bezier(0.16,1,0.3,1)",
                   }}
                 >
@@ -121,7 +121,7 @@ export function TopicsSlider() {
                     ? "radial-gradient(circle, rgba(199,255,61,0.06) 0%, transparent 70%)"
                     : "radial-gradient(circle, rgba(199,255,61,0.02) 0%, transparent 70%)",
                   filter: "blur(20px)",
-                  opacity: focused ? 1 : 0.3,
+                  opacity: focused ? 1 : 0.4,
                   transition: "opacity 1s cubic-bezier(0.16,1,0.3,1)",
                 }}
               />
