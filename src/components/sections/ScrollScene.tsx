@@ -152,7 +152,7 @@ export function ScrollScene() {
             const s = stages[i]
             const inStart = s.start
             const inEnd = s.end
-            const holdEnd = Math.min(inEnd + 0.12, 0.98)
+            const holdEnd = Math.min(inEnd + 0.18, 0.98)
 
             let opacity = 0
             let blurAmt = 10
@@ -173,10 +173,10 @@ export function ScrollScene() {
               yOff = 0
             } else if (p >= holdEnd) {
               const t = (p - holdEnd) / (1 - holdEnd)
-              opacity = 1 - t * 0.3
-              blurAmt = t * 3
-              scale = 1 + t * 0.015
-              yOff = -t * 8
+              opacity = Math.max(0, 1 - t * 1.5)
+              blurAmt = t * 8
+              scale = 1 + t * 0.02
+              yOff = -t * 10
             }
 
             gsap.set(wrapper, {
@@ -191,14 +191,14 @@ export function ScrollScene() {
           // COMPLETE SENTENCE — visible at very end
           // =============================================
           if (completeRef.current) {
-            const completeStart = 0.92
+            const completeStart = 0.85
             let completeOpacity = 0
             let completeBlur = 6
             let completeScale = 1.03
             if (p >= completeStart) {
               const t = (p - completeStart) / (1 - completeStart)
               const eased = Math.min(1, t * 1.8)
-              completeOpacity = eased * 0.7
+              completeOpacity = eased * 0.85
               completeBlur = 6 - eased * 6
               completeScale = 1.03 - eased * 0.03
             }
@@ -296,16 +296,16 @@ export function ScrollScene() {
         </div>
 
         {/* ===== STAGE TEXT OVERLAY ===== */}
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center" style={{ minHeight: "40vh" }}>
+          {/* Stage words — all centered in the same spot, swapped by opacity */}
           {stages.map((stage, i) => (
             <div
               key={i}
               ref={(el) => { stageRefs.current[i] = el }}
+              className="absolute inset-0 flex items-center justify-center"
               style={{
                 opacity: 0,
                 filter: "blur(10px)",
-                scale: 1.04,
-                y: 20,
                 willChange: "transform, opacity, filter",
               }}
             >
@@ -318,17 +318,18 @@ export function ScrollScene() {
             </div>
           ))}
 
-          {/* Complete sentence — subtle reveal at the end */}
+          {/* Complete sentence — appears just below the stage word near the end */}
           <div
             ref={completeRef}
+            className="absolute left-0 right-0 text-center"
             style={{
               opacity: 0,
               filter: "blur(6px)",
-              scale: 1.03,
               willChange: "transform, opacity, filter",
+              top: "calc(50% + 4rem)",
             }}
           >
-            <p className="text-sm md:text-base text-text-muted/60 mt-12 tracking-[0.15em] uppercase">
+            <p className="text-sm md:text-base text-text-muted/60 tracking-[0.15em] uppercase">
               Understand the force behind every formula.
             </p>
           </div>
