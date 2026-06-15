@@ -80,7 +80,12 @@ export function ScrollScene() {
     if (!section || !media || !bgWord || !diagram) return
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (prefersReduced) return
+    if (prefersReduced) {
+      if (completeRef.current) {
+        gsap.set(completeRef.current, { opacity: 0.85, filter: "blur(0px)", scale: 1 })
+      }
+      return
+    }
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
@@ -188,20 +193,24 @@ export function ScrollScene() {
           })
 
           // =============================================
-          // COMPLETE SENTENCE — visible at very end
+          // COMPLETE SENTENCE — visible early, fades away
           // =============================================
           if (completeRef.current) {
-            const completeStart = 0.85
-            let completeOpacity = 0
-            let completeBlur = 6
-            let completeScale = 1.03
-            if (p >= completeStart) {
-              const t = (p - completeStart) / (1 - completeStart)
-              const eased = Math.min(1, t * 1.8)
-              completeOpacity = eased * 0.85
-              completeBlur = 6 - eased * 6
-              completeScale = 1.03 - eased * 0.03
+            const fadeStart = 0.35
+            const fadeEnd = 0.80
+
+            let completeOpacity = 0.85
+            let completeBlur = 0
+            let completeScale = 1
+
+            if (p >= fadeStart) {
+              const t = Math.min(1, (p - fadeStart) / (fadeEnd - fadeStart))
+              const eased = Math.pow(t, 1.5)
+              completeOpacity = 0.85 * (1 - eased)
+              completeBlur = eased * 2
+              completeScale = 1 - eased * 0.02
             }
+
             gsap.set(completeRef.current, {
               opacity: completeOpacity,
               filter: `blur(${completeBlur}px)`,
