@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { supabase } from "@/lib/supabase"
+import { supabase, ensureProfile } from "@/lib/supabase"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -69,10 +69,21 @@ export default function EnrollSection() {
       grade_board: grade,
     })
 
-    if (profileError) {
-      setMessage(profileError.message)
-      setLoading(false)
-      return
+    if (profileError?.message?.includes("duplicate") || profileError?.message?.includes("already exists")) {
+      const { error: upsertError } = await supabase.from("profiles").upsert({
+        id: authData.user.id,
+        name,
+        email,
+        phone,
+        grade_board: grade,
+      }, { onConflict: "id" })
+      if (upsertError) {
+        setMessage(upsertError.message)
+        setLoading(false)
+        return
+      }
+    } else if (profileError) {
+      await ensureProfile(authData.user.id, email)
     }
 
     if (!authData.session) {

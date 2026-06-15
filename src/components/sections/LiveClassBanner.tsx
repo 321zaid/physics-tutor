@@ -38,7 +38,7 @@ export function LiveClassBanner() {
   if (loading) return null
   if (!user) return null
 
-  if (access === false) {
+  if (!access) {
     return (
       <div className="bg-bg-alt border-y border-border">
         <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4">
@@ -52,7 +52,19 @@ export function LiveClassBanner() {
     )
   }
 
-  if (!liveClass) return null
+  if (!liveClass) {
+    return (
+      <div className="bg-bg-alt border-y border-border">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-sm text-text-muted">
+              No live class is available for your curriculum right now.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-bg-alt border-y border-border">

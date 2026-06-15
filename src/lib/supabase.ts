@@ -44,15 +44,6 @@ export type Class = {
   created_at: string
 }
 
-export type Recording = {
-  id: string
-  title: string
-  date: string
-  link: string
-  topic: string | null
-  created_at: string
-}
-
 export type LiveClass = {
   id: string
   title: string
@@ -75,4 +66,23 @@ export type Payment = {
   method: string | null
   notes: string | null
   created_at: string
+}
+
+export async function ensureProfile(userId: string, userEmail: string | undefined) {
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle()
+  if (!existing) {
+    await supabase.from("profiles").insert({
+      id: userId,
+      email: userEmail,
+      name: userEmail?.split("@")[0] || "Student",
+    })
+  }
+}
+
+export async function updateLastLogin(userId: string) {
+  await supabase.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", userId)
 }

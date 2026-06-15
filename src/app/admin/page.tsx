@@ -9,6 +9,7 @@ const CURRICULA = ["IGCSE", "A-Level", "IB", "AP", "CBSE", "ICSE", "GCSE", "Othe
 const INPUT_CLASS = "w-full px-3 py-2 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim"
 const TOGGLE_ACTIVE = "text-[10px] uppercase tracking-wider underline"
 const CELL_CLASS = "py-2.5 px-3 text-sm"
+const ZAID_EMAIL = "zaid123was@gmail.com"
 
 function formatDate(d: string | null | undefined) {
   if (!d) return "-"
@@ -65,8 +66,6 @@ export default function AdminPage() {
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
-      const isZAID = s.email === "zaid123was@gmail.com"
-      if (isZAID) return false
       if (search) {
         const q = search.toLowerCase()
         if (!s.name.toLowerCase().includes(q) && !s.email.toLowerCase().includes(q)) return false
@@ -82,8 +81,11 @@ export default function AdminPage() {
   }, [students, search, filterSubject, filterCurriculum, filterFeePaid, filterAccess])
 
   const isSuperAdmin = profile?.role === "super_admin"
+  const isZaid = profile?.email === ZAID_EMAIL
+  const isAdmin = profile?.role === "admin" || isSuperAdmin
 
   const startEdit = (s: Profile) => {
+    if (s.email === ZAID_EMAIL && !isZaid) return
     setEditingId(s.id)
     setEditForm({
       name: s.name, subject: s.subject, curriculum: s.curriculum,
@@ -161,11 +163,13 @@ export default function AdminPage() {
   }
 
   const downloadCSV = () => {
-    const headers = ["Name", "Email", "Signup Date", "Last Login", "Subject", "Curriculum", "Fee Paid", "Access", "Role", "Notes"]
-    const rows = students.filter((s) => s.email !== "zaid123was@gmail.com").map((s) => [
+    const headers = ["Name", "Email", "Signup Date", "Last Login", "Subject", "Curriculum", "Fee Paid", "Access", "Admin", "Notes"]
+    const rows = filteredStudents.map((s) => [
       s.name, s.email, formatDate(s.created_at), formatDate(s.last_login),
       s.subject ?? "", s.curriculum ?? "", s.fee_paid ? "Yes" : "No",
-      s.access ? "Yes" : "No", s.role, s.notes ?? "",
+      s.access ? "Yes" : "No",
+      s.email === ZAID_EMAIL ? "Permanent Super Admin" : s.role === "admin" || s.role === "super_admin" ? "Yes" : "No",
+      s.notes ?? "",
     ])
     const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
@@ -215,7 +219,7 @@ export default function AdminPage() {
               {profile?.email} &middot; {profile?.role}
             </p>
           </div>
-          {isSuperAdmin && (
+          {isAdmin && (
             <button onClick={downloadCSV}
               className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
               Export CSV
@@ -270,7 +274,7 @@ export default function AdminPage() {
                   <th className={CELL_CLASS}>Curriculum</th>
                   <th className={CELL_CLASS}>Fee</th>
                   <th className={CELL_CLASS}>Access</th>
-                  <th className={CELL_CLASS}>Role</th>
+                  <th className={CELL_CLASS}>Admin</th>
                   <th className={CELL_CLASS}>Notes</th>
                   <th className={CELL_CLASS}>Actions</th>
                 </tr>
@@ -316,11 +320,12 @@ export default function AdminPage() {
                             </td>
                             <td className={CELL_CLASS}>
                               <button onClick={() => setEditForm({ ...editForm, access: !editForm.access })}
-                                className={`${TOGGLE_ACTIVE} ${editForm.access ? "text-green-400" : "text-red-400"}`}>
+                                disabled={s.email === ZAID_EMAIL}
+                                className={`${TOGGLE_ACTIVE} ${editForm.access ? "text-green-400" : "text-red-400"} ${s.email === ZAID_EMAIL ? "opacity-50 cursor-not-allowed" : ""}`}>
                                 {editForm.access ? "Enabled" : "Disabled"}
                               </button>
                             </td>
-                            <td className={CELL_CLASS + " text-text-dim"}>{s.role}</td>
+                            <td className={CELL_CLASS + " text-text-dim"}>{s.email === ZAID_EMAIL ? "Permanent" : s.role}</td>
                             <td className={CELL_CLASS}>
                               <input value={editForm.notes ?? ""} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                                 className={INPUT_CLASS} placeholder="Notes..." />
@@ -351,20 +356,39 @@ export default function AdminPage() {
                               </span>
                             </td>
                             <td className={CELL_CLASS}>
-                              <span className={`text-[10px] uppercase tracking-wider ${s.role === "admin" ? "text-blue-400" : "text-text-dim"}`}>
-                                {s.role}
-                              </span>
+                              {s.email === ZAID_EMAIL ? (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-yellow-400/10 text-yellow-400 border border-yellow-400/30">
+                                  Permanent Super Admin
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => { if (isZaid) updateRole(s.id, s.role === "admin" ? "student" : "admin") }}
+                                  disabled={!isZaid}
+                                  className={`text-[10px] uppercase tracking-wider underline ${
+                                    s.role === "admin" || s.role === "super_admin"
+                                      ? "text-blue-400"
+                                      : "text-text-dim"
+                                  } ${!isZaid ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:text-blue-300"}`}
+                                  title={!isZaid ? "Only the super admin can change admin status." : ""}
+                                >
+                                  {s.role === "admin" || s.role === "super_admin" ? "Yes" : "No"}
+                                </button>
+                              )}
                             </td>
                             <td className={CELL_CLASS + " text-text-muted max-w-[120px] truncate"} title={s.notes ?? ""}>{s.notes || "-"}</td>
                             <td className={CELL_CLASS}>
-                              <div className="flex flex-wrap gap-2">
-                                <button onClick={() => startEdit(s)} className="text-xs text-text-primary hover:text-text-muted underline">Edit</button>
-                                {isSuperAdmin && s.role !== "super_admin" && (
-                                  s.role === "admin"
-                                    ? <button onClick={() => updateRole(s.id, "student")} className="text-xs text-red-400 hover:text-red-300 underline">Demote</button>
-                                    : <button onClick={() => updateRole(s.id, "admin")} className="text-xs text-blue-400 hover:text-blue-300 underline">Promote</button>
-                                )}
-                              </div>
+                              {s.email === ZAID_EMAIL ? (
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-yellow-400">Permanent Super Admin</span>
+                              ) : (
+                                <div className="flex flex-wrap gap-2">
+                                  <button onClick={() => startEdit(s)} className="text-xs text-text-primary hover:text-text-muted underline">Edit</button>
+                                  {isZaid && s.role !== "super_admin" && (
+                                    s.role === "admin"
+                                      ? <button onClick={() => updateRole(s.id, "student")} className="text-xs text-red-400 hover:text-red-300 underline">Demote</button>
+                                      : <button onClick={() => updateRole(s.id, "admin")} className="text-xs text-blue-400 hover:text-blue-300 underline">Promote</button>
+                                  )}
+                                </div>
+                              )}
                             </td>
                           </>
                         )}

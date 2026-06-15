@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import type { User } from "@supabase/supabase-js"
-import { supabase, type Class } from "@/lib/supabase"
+import { supabase, type Class, ensureProfile, updateLastLogin } from "@/lib/supabase"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -86,6 +86,13 @@ export function ScheduleSection() {
       setLoading(false)
       return
     }
+
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (currentUser) {
+      await ensureProfile(currentUser.id, currentUser.email ?? undefined)
+      await updateLastLogin(currentUser.id)
+    }
+
     setLoading(false)
   }
 
@@ -183,8 +190,15 @@ export function ScheduleSection() {
                 </div>
               </div>
             ) : (
-              <div className="schedule-line text-center py-8">
+              <div className="schedule-line text-center py-8 space-y-4">
                 <p className="text-text-muted">No upcoming class scheduled.</p>
+                <p className="text-text-muted text-xs">
+                  Need a class recording? Email your payment receipt to{" "}
+                  <a href="mailto:abbadea81@gmail.com" className="text-text-primary underline hover:text-text-muted transition-colors">
+                    abbadea81@gmail.com
+                  </a>{" "}
+                  and request the recording.
+                </p>
               </div>
             )}
 
