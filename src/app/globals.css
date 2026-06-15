@@ -119,17 +119,17 @@
 
 /* ===== Glassmorphism ===== */
 .glass-card {
-  background: rgba(20, 26, 36, 0.75);
+  background: rgba(34, 44, 60, 0.88);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
 }
 .glass-card-active {
-  background: rgba(20, 26, 36, 0.82);
+  background: rgba(26, 34, 48, 0.88);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 

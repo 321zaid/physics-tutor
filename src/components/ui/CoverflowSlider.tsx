@@ -30,10 +30,10 @@ function calcPos(index: number, focus: number, isMobile: boolean) {
     return {
       x: diff * 120,
       z: diff === 0 ? 60 : -abs * 30,
-      scale: diff === 0 ? 1.15 : Math.max(0.55, 1 - abs * 0.12),
+      scale: diff === 0 ? 1.15 : Math.max(0.7, 1 - abs * 0.08),
       rotateY: s * Math.min(14, abs * 9),
-      opacity: diff === 0 ? 1 : Math.max(0.03, 1 - abs * 0.38),
-      blur: diff === 0 ? 0 : Math.min(4, abs * 1.8),
+      opacity: diff === 0 ? 1 : Math.max(0.3, 1 - abs * 0.22),
+      blur: diff === 0 ? 0 : Math.min(3, abs * 1.2),
     }
   }
 
@@ -44,29 +44,29 @@ function calcPos(index: number, focus: number, isMobile: boolean) {
     return {
       x: diff * 210 + s * 25,
       z: -60,
-      scale: 0.85,
+      scale: 0.88,
       rotateY: s * 8,
-      opacity: 0.35,
-      blur: 3.5,
+      opacity: 0.78,
+      blur: 2,
     }
   }
   if (abs === 2) {
     return {
       x: diff * 190 + s * 60,
       z: -160,
-      scale: 0.7,
+      scale: 0.78,
       rotateY: s * 7,
-      opacity: 0.1,
-      blur: 6,
+      opacity: 0.55,
+      blur: 4,
     }
   }
   return {
     x: diff * 180 + s * 80,
     z: -260,
-    scale: Math.max(0.42, 0.6 - (abs - 2) * 0.05),
+    scale: Math.max(0.58, 0.75 - (abs - 2) * 0.05),
     rotateY: s * 5,
-    opacity: Math.max(0.015, 0.05 - (abs - 2) * 0.01),
-    blur: Math.min(10, 6 + (abs - 2) * 1.5),
+    opacity: Math.max(0.3, 0.45 - (abs - 2) * 0.03),
+    blur: Math.min(6, 4 + (abs - 2) * 1.0),
   }
 }
 
@@ -139,7 +139,7 @@ export function CoverflowSlider({
         scale: p.scale,
         rotateY: p.rotateY,
         opacity: p.opacity,
-        filter: `blur(${p.blur}px) brightness(${i === refIndex ? 1.15 : 0.55})`,
+        filter: `blur(${p.blur}px) brightness(${i === refIndex ? 1.08 : 0.88})`,
         duration: dur,
         ease: "cinema",
         overwrite: "auto",
@@ -228,7 +228,7 @@ export function CoverflowSlider({
         scale: pos.scale,
         rotateY: pos.rotateY,
         opacity: pos.opacity,
-        filter: `blur(${pos.blur}px) brightness(${i === Math.round(activeIndex - offset) ? 1.15 : 0.55})`,
+        filter: `blur(${pos.blur}px) brightness(${i === Math.round(activeIndex - offset) ? 1.08 : 0.88})`,
       })
     })
   }
