@@ -57,7 +57,9 @@ export function ScrollScene() {
   const pinRef = useRef<HTMLDivElement>(null)
   const mediaRef = useRef<HTMLDivElement>(null)
   const bgWordRef = useRef<HTMLHeadingElement>(null)
-  const headlineRef = useRef<HTMLDivElement>(null)
+  const line1Ref = useRef<HTMLSpanElement>(null)
+  const line2Ref = useRef<HTMLSpanElement>(null)
+  const line3Ref = useRef<HTMLSpanElement>(null)
   const diagramRef = useRef<HTMLDivElement>(null)
   const gridOverlayRef = useRef<HTMLDivElement>(null)
   const equationsRef = useRef<HTMLDivElement>(null)
@@ -72,9 +74,9 @@ export function ScrollScene() {
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (prefersReduced) {
-      if (headlineRef.current) {
-        gsap.set(headlineRef.current, { opacity: 1, y: 0 })
-      }
+      if (line1Ref.current) gsap.set(line1Ref.current, { opacity: 1, y: 0, scale: 1 })
+      if (line2Ref.current) gsap.set(line2Ref.current, { opacity: 1, y: 0, scale: 1 })
+      if (line3Ref.current) gsap.set(line3Ref.current, { opacity: 1, y: 0, scale: 1 })
       return
     }
 
@@ -140,26 +142,26 @@ export function ScrollScene() {
           }
 
           // =============================================
-          // HEADLINE — fades in early, stays visible
+          // HEADLINE LINES — staggered scroll reveal
           // =============================================
-          if (headlineRef.current) {
-            const fadeStart = 0.05
-            const fadeEnd = 0.25
-
+          const lines: [HTMLSpanElement | null, number, number][] = [
+            [line1Ref.current, 0.00, 0.20],
+            [line2Ref.current, 0.15, 0.35],
+            [line3Ref.current, 0.30, 0.55],
+          ]
+          lines.forEach(([el, start, end]) => {
+            if (!el) return
             let opacity = 0
-            let yOff = 16
-
-            if (p >= fadeStart) {
-              const t = Math.min(1, (p - fadeStart) / (fadeEnd - fadeStart))
+            let y = 12
+            let scale = 0.98
+            if (p >= start) {
+              const t = Math.min(1, (p - start) / (end - start))
               opacity = t
-              yOff = 16 - t * 16
+              y = 12 - t * 12
+              scale = 0.98 + t * 0.02
             }
-
-            gsap.set(headlineRef.current, {
-              opacity,
-              y: yOff,
-            })
-          }
+            gsap.set(el, { opacity, y, scale })
+          })
 
           // =============================================
           // SUBTLE PROGRESS INDICATOR
@@ -249,15 +251,26 @@ export function ScrollScene() {
 
         {/* ===== HEADLINE ===== */}
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
-          <div
-            ref={headlineRef}
-            className="flex flex-col items-center justify-center gap-3 md:gap-5 py-8"
-            style={{ opacity: 0, willChange: "transform, opacity" }}
-          >
-            <span className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight">
-              UNDERSTAND THE FORCE
+          <div className="flex flex-col items-center justify-center gap-4 md:gap-6 py-8">
+            <span
+              ref={line1Ref}
+              className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight"
+              style={{ opacity: 0, scale: 0.98, willChange: "transform, opacity" }}
+            >
+              UNDERSTAND
             </span>
-            <span className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight">
+            <span
+              ref={line2Ref}
+              className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight"
+              style={{ opacity: 0, scale: 0.98, willChange: "transform, opacity" }}
+            >
+              THE FORCE
+            </span>
+            <span
+              ref={line3Ref}
+              className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight"
+              style={{ opacity: 0, scale: 0.98, willChange: "transform, opacity" }}
+            >
               BEHIND EVERY FORMULA
             </span>
           </div>
