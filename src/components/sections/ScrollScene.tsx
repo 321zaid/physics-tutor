@@ -6,13 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
-const stages = [
-  { text: "UNDERSTAND", start: 0.20, end: 0.35 },
-  { text: "THE FORCE", start: 0.40, end: 0.55 },
-  { text: "BEHIND", start: 0.60, end: 0.75 },
-  { text: "EVERY FORMULA", start: 0.80, end: 0.95 },
-]
-
 function BgDiagram() {
   return (
     <svg
@@ -64,13 +57,11 @@ export function ScrollScene() {
   const pinRef = useRef<HTMLDivElement>(null)
   const mediaRef = useRef<HTMLDivElement>(null)
   const bgWordRef = useRef<HTMLHeadingElement>(null)
-  const stageRefs = useRef<(HTMLDivElement | null)[]>([])
-  const stageTextRefs = useRef<(HTMLHeadingElement | null)[]>([])
+  const headlineRef = useRef<HTMLDivElement>(null)
   const diagramRef = useRef<HTMLDivElement>(null)
   const gridOverlayRef = useRef<HTMLDivElement>(null)
   const equationsRef = useRef<HTMLDivElement>(null)
   const progressBarRef = useRef<HTMLDivElement>(null)
-  const completeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const section = sectionRef.current
@@ -81,8 +72,8 @@ export function ScrollScene() {
 
     const prefersReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (prefersReduced) {
-      if (completeRef.current) {
-        gsap.set(completeRef.current, { opacity: 0.85, filter: "blur(0px)", scale: 1 })
+      if (headlineRef.current) {
+        gsap.set(headlineRef.current, { opacity: 1, y: 0 })
       }
       return
     }
@@ -149,71 +140,24 @@ export function ScrollScene() {
           }
 
           // =============================================
-          // STAGE REVEALS — each earns its moment
+          // HEADLINE — fades in early, stays visible
           // =============================================
-
-          stageRefs.current.forEach((wrapper, i) => {
-            if (!wrapper) return
-            const s = stages[i]
-            const inStart = s.start
-            const inEnd = s.end
-            const holdEnd = Math.min(inEnd + 0.18, 0.98)
+          if (headlineRef.current) {
+            const fadeStart = 0.05
+            const fadeEnd = 0.25
 
             let opacity = 0
-            let blurAmt = 10
-            let scale = 1.08
-            let yOff = 20
-
-            if (p >= inStart && p < inEnd) {
-              const t = (p - inStart) / (inEnd - inStart)
-              const eased = 1 - Math.pow(1 - t, 3)
-              opacity = eased
-              blurAmt = 10 - eased * 10
-              scale = 1.04 - eased * 0.04
-              yOff = 20 - eased * 20
-            } else if (p >= inEnd && p < holdEnd) {
-              opacity = 1
-              blurAmt = 0
-              scale = 1
-              yOff = 0
-            } else if (p >= holdEnd) {
-              const t = (p - holdEnd) / (1 - holdEnd)
-              opacity = Math.max(0, 1 - t * 1.5)
-              blurAmt = t * 8
-              scale = 1 + t * 0.02
-              yOff = -t * 10
-            }
-
-            gsap.set(wrapper, {
-              opacity,
-              filter: `blur(${blurAmt}px)`,
-              scale,
-              y: yOff,
-            })
-          })
-
-          // =============================================
-          // COMPLETE SENTENCE — visible early, fades away
-          // =============================================
-          if (completeRef.current) {
-            const fadeStart = 0.20
-            const fadeEnd = 0.35
-
-            let completeOpacity = 0.85
-            let completeBlur = 0
-            let completeScale = 1
+            let yOff = 16
 
             if (p >= fadeStart) {
               const t = Math.min(1, (p - fadeStart) / (fadeEnd - fadeStart))
-              completeOpacity = 0.85 * (1 - t)
-              completeBlur = t * 2
-              completeScale = 1 - t * 0.02
+              opacity = t
+              yOff = 16 - t * 16
             }
 
-            gsap.set(completeRef.current, {
-              opacity: completeOpacity,
-              filter: `blur(${completeBlur}px)`,
-              scale: completeScale,
+            gsap.set(headlineRef.current, {
+              opacity,
+              y: yOff,
             })
           }
 
@@ -303,43 +247,19 @@ export function ScrollScene() {
           <div className="w-full h-full bg-gradient-to-r from-accent-lime/40 via-accent-lime/20 to-transparent" />
         </div>
 
-        {/* ===== STAGE TEXT OVERLAY ===== */}
-        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center" style={{ minHeight: "40vh" }}>
-          {/* Stage words — all centered in the same spot, swapped by opacity */}
-          {stages.map((stage, i) => (
-            <div
-              key={i}
-              ref={(el) => { stageRefs.current[i] = el }}
-              className="absolute inset-0 flex items-center justify-center"
-              style={{
-                opacity: 0,
-                filter: "blur(10px)",
-                willChange: "transform, opacity, filter",
-              }}
-            >
-              <h3
-                ref={(el) => { stageTextRefs.current[i] = el }}
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-text-primary leading-[1.15] tracking-tight"
-              >
-                {stage.text}
-              </h3>
-            </div>
-          ))}
-
-          {/* Complete sentence — appears just below the stage word near the end */}
+        {/* ===== HEADLINE ===== */}
+        <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
           <div
-            ref={completeRef}
-            className="absolute left-0 right-0 text-center"
-            style={{
-              opacity: 0,
-              filter: "blur(6px)",
-              willChange: "transform, opacity, filter",
-              top: "calc(50% + 4rem)",
-            }}
+            ref={headlineRef}
+            className="flex flex-col items-center justify-center gap-3 md:gap-5 py-8"
+            style={{ opacity: 0, willChange: "transform, opacity" }}
           >
-            <p className="text-sm md:text-base text-text-muted/60 tracking-[0.15em] uppercase">
-              Understand the force behind every formula.
-            </p>
+            <span className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight">
+              UNDERSTAND THE FORCE
+            </span>
+            <span className="block text-[clamp(1.5rem,4.5vw,4rem)] font-bold text-text-primary leading-[1.05] tracking-tight">
+              BEHIND EVERY FORMULA
+            </span>
           </div>
         </div>
       </div>
