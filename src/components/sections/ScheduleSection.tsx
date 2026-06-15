@@ -21,6 +21,7 @@ export function ScheduleSection() {
   const [resendMessage, setResendMessage] = useState("")
   const [user, setUser] = useState<User | null>(null)
   const [nextClass, setNextClass] = useState<Class | null>(null)
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -36,6 +37,14 @@ export function ScheduleSection() {
 
   useEffect(() => {
     if (!user) return
+    supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setRole(data.role)
+      })
     supabase
       .from("classes")
       .select("*")
@@ -186,6 +195,21 @@ export function ScheduleSection() {
                   <a href={nextClass.meet_link} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center justify-center w-full px-8 py-4 bg-primary text-white font-semibold text-sm uppercase tracking-wider rounded-none hover:opacity-90 transition-all duration-500">
                     Join Google Meet
+                  </a>
+                </div>
+              </div>
+            ) : role === "super_admin" || role === "admin" ? (
+              <div className="schedule-line text-center py-8 space-y-4">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
+                <p className="text-text-muted">
+                  You are logged in as an admin. Use the Admin dashboard to manage students, payments, access, and live classes.
+                </p>
+                <div className="pt-4">
+                  <a
+                    href="/admin"
+                    className="inline-flex items-center justify-center px-8 py-3 border border-border text-text-primary font-semibold text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
+                  >
+                    Open Admin Dashboard
                   </a>
                 </div>
               </div>

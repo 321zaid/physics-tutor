@@ -8,6 +8,7 @@ export function LiveClassBanner() {
   const [user, setUser] = useState<User | null>(null)
   const [liveClass, setLiveClass] = useState<LiveClass | null>(null)
   const [access, setAccess] = useState<boolean | null>(null)
+  const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -15,10 +16,15 @@ export function LiveClassBanner() {
       const u = data.session?.user ?? null
       setUser(u)
       if (u) {
-        const { data: p } = await supabase.from("profiles").select("access, subject, curriculum").eq("id", u.id).single()
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("role, access, subject, curriculum")
+          .eq("id", u.id)
+          .single()
         if (!p) { setLoading(false); return }
+        setRole(p.role)
         setAccess(p.access)
-        if (p.access && p.subject && p.curriculum) {
+        if (p.role !== "super_admin" && p.role !== "admin" && p.access && p.subject && p.curriculum) {
           const { data: lc } = await supabase
             .from("live_classes")
             .select("*")
@@ -37,6 +43,31 @@ export function LiveClassBanner() {
 
   if (loading) return null
   if (!user) return null
+
+  const isAdmin = role === "super_admin" || role === "admin"
+
+  if (isAdmin) {
+    return (
+      <div className="bg-bg-alt border-y border-border">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
+              <p className="text-sm text-text-muted">
+                You are logged in as an admin. Use the Admin dashboard to manage students, payments, access, and live classes.
+              </p>
+            </div>
+            <a
+              href="/admin"
+              className="px-6 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300 shrink-0"
+            >
+              Open Admin Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!access) {
     return (
