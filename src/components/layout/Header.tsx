@@ -189,7 +189,7 @@ export function Header() {
                     onClick={() => setOpen(false)}
                     className="flex items-center justify-center w-full py-3.5 border border-border text-text-primary text-sm font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all"
                   >
-                    Book Free Trial
+                    Start Learning
                   </a>
                 </div>
               </div>

@@ -80,7 +80,7 @@ export function FinalCTA() {
         </h2>
 
         <p className="cta-line text-text-muted text-base max-w-md mx-auto mb-10">
-          Book a free trial. Join a live class. Or just see what clear physics
+          Join a live class. Or just see what clear physics
           teaching looks like.
         </p>
 
@@ -89,7 +89,7 @@ export function FinalCTA() {
             href="#enroll"
             className="inline-flex items-center gap-2 px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
           >
-            Book Free Trial
+            Start Learning
           </a>
           <a
             href="#join"

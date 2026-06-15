@@ -100,7 +100,7 @@ export default function EnrollSection() {
             Sign Up
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-primary leading-[0.9] mb-4">
-            Book a free trial.
+            Start learning today.
           </h2>
           <p className="text-text-muted text-sm max-w-sm mx-auto">
             Create an account. No pressure. See the method first.
@@ -201,9 +201,6 @@ export default function EnrollSection() {
             </p>
           )}
 
-          <p className="text-text-dim text-[10px] mt-4 text-center uppercase tracking-[0.15em]">
-            Free trial — no commitment
-          </p>
         </form>
       </div>
     </section>

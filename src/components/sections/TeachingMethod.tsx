@@ -19,12 +19,12 @@ const SECTION_VH = 150
 // Each step: [enterStart, enterEnd, holdEnd]
 // Step stays visible once entered; builds cumulatively
 const stepPhases = steps.map((_, i) => ({
-  enterStart: 0.12 + i * 0.14,
-  enterEnd: 0.12 + i * 0.14 + 0.06,
+  enterStart: 0.02 + i * 0.12,
+  enterEnd: 0.02 + i * 0.12 + 0.05,
   holdEnd: 0.96,
 }))
 
-const TITLE_END = 0.11
+const TITLE_END = 0.05
 const SETTLE_START = 0.88
 const EXIT_START = 0.94
 
@@ -36,6 +36,7 @@ export function TeachingMethod() {
   const bgRef = useRef<HTMLDivElement>(null)
   const mediaRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+  const dotRefs = useRef<(HTMLDivElement | null)[]>([])
   const contentRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLParagraphElement>(null)
   const settleGlowRef = useRef<HTMLDivElement>(null)
@@ -51,7 +52,7 @@ export function TeachingMethod() {
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: section,
-        start: "top bottom",
+        start: "top 80%",
         end: "bottom top",
         scrub: 0.8,
         onUpdate: (self) => {
@@ -89,8 +90,8 @@ export function TeachingMethod() {
             let y = 30
 
             if (p < phase.enterStart) {
-              opacity = 0
-              y = 30
+              opacity = 0.2
+              y = 20
             } else if (p >= phase.enterStart && p < phase.enterEnd) {
               const t = (p - phase.enterStart) / (phase.enterEnd - phase.enterStart)
               const eased = 1 - Math.pow(1 - t, 3)
@@ -119,11 +120,11 @@ export function TeachingMethod() {
 
             if (p < phase.enterStart) {
               gsap.set(el, {
-                rotateX: 10,
-                rotateY: -4,
-                scale: 0.9,
-                opacity: 0,
-                y: 30,
+                rotateX: 6,
+                rotateY: -2,
+                scale: 0.95,
+                opacity: 0.15,
+                y: 15,
                 transformPerspective: 1000,
               })
             } else if (p >= phase.enterStart && p < phase.enterEnd) {
@@ -157,6 +158,23 @@ export function TeachingMethod() {
                 transformPerspective: 1000,
               })
             }
+          })
+
+          // ===== ACTIVE STEP & DOT HIGHLIGHTING =====
+          let activeStep = -1
+          for (let i = steps.length - 1; i >= 0; i--) {
+            if (p >= stepPhases[i].enterStart && p < EXIT_START) {
+              activeStep = i
+              break
+            }
+          }
+          dotRefs.current.forEach((el, i) => {
+            if (!el) return
+            const filled = i <= activeStep
+            gsap.set(el, {
+              backgroundColor: filled ? "#C7FF3D" : "rgba(255,255,255,0.12)",
+              scale: filled ? 1 : 0.9,
+            })
           })
 
           // ===== PROGRESS TRACK =====
@@ -287,7 +305,7 @@ export function TeachingMethod() {
                 >
                   <div
                     ref={(el) => { cardRefs.current[i] = el }}
-                    className="flex items-start gap-6 py-6"
+                    className="flex items-start gap-7 py-7"
                     style={{
                       borderBottom: "1px solid rgba(255,255,255,0.12)",
                       transformStyle: "preserve-3d",
@@ -297,10 +315,10 @@ export function TeachingMethod() {
                       {step.number}
                     </span>
                     <div>
-                      <h3 className="text-2xl md:text-3xl font-bold text-text-primary mb-1">
+                      <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-text-primary mb-1.5">
                         {step.title}
                       </h3>
-                      <p className="text-sm text-text-muted leading-relaxed max-w-md">
+                      <p className="text-sm md:text-base text-text-muted leading-relaxed max-w-md">
                         {step.desc}
                       </p>
                     </div>
@@ -320,19 +338,17 @@ export function TeachingMethod() {
                   className="absolute bottom-0 left-0 w-full"
                   style={{ backgroundColor: "#C7FF3D", height: "0%" }}
                 />
-                {steps.map((_, i) => {
-                  const dotColor = i <= 0 ? "#C7FF3D" : "rgba(255,255,255,0.12)"
-                  return (
-                    <div
-                      key={i}
-                      className="absolute left-1/2 -translate-x-1/2 w-2 h-2 rounded-full"
-                      style={{
-                        backgroundColor: dotColor,
-                        bottom: `${(i / (steps.length - 1)) * 100}%`,
-                      }}
-                    />
-                  )
-                })}
+                {steps.map((_, i) => (
+                  <div
+                    key={i}
+                    ref={(el) => { dotRefs.current[i] = el }}
+                    className="absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full"
+                    style={{
+                      backgroundColor: "rgba(255,255,255,0.12)",
+                      bottom: `${(i / (steps.length - 1)) * 100}%`,
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </div>

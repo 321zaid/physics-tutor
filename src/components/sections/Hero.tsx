@@ -177,7 +177,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 px-8 py-4 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
             style={{ opacity: 0 }}
           >
-            Book Free Trial
+            Start Learning
           </a>
           <a
             href="#join"
