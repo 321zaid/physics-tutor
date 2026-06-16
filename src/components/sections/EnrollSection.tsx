@@ -67,6 +67,8 @@ export default function EnrollSection() {
       email,
       phone,
       grade_board: grade,
+      access: false,
+      fee_paid: false,
     })
 
     if (profileError?.message?.includes("duplicate") || profileError?.message?.includes("already exists")) {
@@ -76,6 +78,8 @@ export default function EnrollSection() {
         email,
         phone,
         grade_board: grade,
+        access: false,
+        fee_paid: false,
       }, { onConflict: "id" })
       if (upsertError) {
         setMessage(upsertError.message)
