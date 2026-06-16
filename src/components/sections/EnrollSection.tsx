@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { supabase, ensureProfile } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -53,6 +53,7 @@ export default function EnrollSection() {
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: { data: { name, phone, grade_board: grade } },
     })
 
     if (authError || !authData.user) {
@@ -61,37 +62,8 @@ export default function EnrollSection() {
       return
     }
 
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: authData.user.id,
-      name,
-      email,
-      phone,
-      grade_board: grade,
-      access: false,
-      fee_paid: false,
-    })
-
-    if (profileError?.message?.includes("duplicate") || profileError?.message?.includes("already exists")) {
-      const { error: upsertError } = await supabase.from("profiles").upsert({
-        id: authData.user.id,
-        name,
-        email,
-        phone,
-        grade_board: grade,
-        access: false,
-        fee_paid: false,
-      }, { onConflict: "id" })
-      if (upsertError) {
-        setMessage(upsertError.message)
-        setLoading(false)
-        return
-      }
-    } else if (profileError) {
-      await ensureProfile(authData.user.id, email)
-    }
-
     if (!authData.session) {
-      setMessage("Account created. Please confirm your email before logging in.")
+      setMessage("Account created. Please check your inbox (and spam) to confirm your email before logging in.")
     } else {
       setMessage("Account created! You can now log in.")
     }

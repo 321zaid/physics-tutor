@@ -8,6 +8,16 @@ import { cn } from "@/lib/utils"
 import type { User } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase"
 
+function cleanAuthUrl() {
+  if (typeof window === "undefined") return
+  const hash = window.location.hash
+  if (!hash) return
+  const authParams = ["access_token=", "refresh_token=", "expires_in=", "token_type=", "type=", "code="]
+  if (authParams.some((p) => hash.includes(p))) {
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+  }
+}
+
 const navItems = [
   { label: "About", href: "#about" },
   { label: "Topics", href: "#topics" },
@@ -30,6 +40,7 @@ export function Header() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
+      cleanAuthUrl()
       const u = data.session?.user
       setUser(u ?? null)
       if (u) {
