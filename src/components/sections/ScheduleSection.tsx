@@ -126,6 +126,16 @@ export function ScheduleSection() {
     setNextClass(null)
   }
 
+  const recordingRequestNotice = (
+    <p className="text-text-muted text-xs">
+      Need a class recording? Email your payment receipt to{" "}
+      <a href="mailto:abbadea81@gmail.com" className="text-text-primary underline hover:text-text-muted transition-colors">
+        abbadea81@gmail.com
+      </a>{" "}
+      and request the recording.
+    </p>
+  )
+
   return (
     <section id="join" ref={sectionRef} className="relative py-24 md:py-32 overflow-hidden bg-bg">
       <div
@@ -171,6 +181,21 @@ export function ScheduleSection() {
                   Don&apos;t have an account? <a href="#enroll" className="underline">Sign up</a>
                 </p>
               </form>
+            ) : user.email === "zaid123was@gmail.com" || role === "super_admin" || role === "admin" ? (
+              <div className="schedule-line text-center py-8 space-y-4">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
+                <p className="text-text-muted">
+                  You are logged in as an admin. Use the Admin dashboard to manage students, payments, access, and live classes.
+                </p>
+                <div className="pt-4">
+                  <a
+                    href="/admin"
+                    className="inline-flex items-center justify-center px-8 py-3 border border-border text-text-primary font-semibold text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
+                  >
+                    Open Admin Dashboard
+                  </a>
+                </div>
+              </div>
             ) : nextClass ? (
               <div className="space-y-4 mb-8">
                 <div className="schedule-line">
@@ -197,32 +222,14 @@ export function ScheduleSection() {
                     Join Google Meet
                   </a>
                 </div>
-              </div>
-            ) : user.email === "zaid123was@gmail.com" || role === "super_admin" || role === "admin" ? (
-              <div className="schedule-line text-center py-8 space-y-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
-                <p className="text-text-muted">
-                  You are logged in as an admin. Use the Admin dashboard to manage students, payments, access, and live classes.
-                </p>
-                <div className="pt-4">
-                  <a
-                    href="/admin"
-                    className="inline-flex items-center justify-center px-8 py-3 border border-border text-text-primary font-semibold text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
-                  >
-                    Open Admin Dashboard
-                  </a>
+                <div className="schedule-line pt-6 border-t border-border">
+                  {recordingRequestNotice}
                 </div>
               </div>
             ) : (
               <div className="schedule-line text-center py-8 space-y-4">
                 <p className="text-text-muted">No upcoming class scheduled.</p>
-                <p className="text-text-muted text-xs">
-                  Need a class recording? Email your payment receipt to{" "}
-                  <a href="mailto:abbadea81@gmail.com" className="text-text-primary underline hover:text-text-muted transition-colors">
-                    abbadea81@gmail.com
-                  </a>{" "}
-                  and request the recording.
-                </p>
+                {recordingRequestNotice}
               </div>
             )}
 
