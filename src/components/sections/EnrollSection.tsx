@@ -62,10 +62,14 @@ export default function EnrollSection() {
       return
     }
 
+    if (authData.session && authData.user?.email !== "zaid123was@gmail.com") {
+      await supabase.auth.signOut()
+    }
+
     if (!authData.session) {
       setMessage("Account created. Please check your inbox (and spam) to confirm your email before logging in.")
     } else {
-      setMessage("Account created! You can now log in.")
+      setMessage("Account created. Please wait for the teacher to grant you access.")
     }
     setName("")
     setEmail("")

@@ -98,6 +98,19 @@ export function ScheduleSection() {
 
     const { data: { user: currentUser } } = await supabase.auth.getUser()
     if (currentUser) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("access")
+        .eq("id", currentUser.id)
+        .maybeSingle()
+
+      if (!profile?.access && currentUser.email !== "zaid123was@gmail.com") {
+        await supabase.auth.signOut()
+        setError("Your account is pending approval. Please wait for the teacher to grant you access.")
+        setLoading(false)
+        return
+      }
+
       await ensureProfile(currentUser.id, currentUser.email ?? undefined)
       await updateLastLogin(currentUser.id)
     }
