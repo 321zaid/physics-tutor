@@ -545,14 +545,38 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
     return out
   }
 
+  function formatTimeInput(value: string) {
+    const digits = value.replace(/\D/g, "")
+    let out = ""
+    if (digits.length > 0) out = digits.slice(0, 2)
+    if (digits.length > 2) out += ":" + digits.slice(2, 4)
+    return out
+  }
+
+  function validateClassForm() {
+    const timeRe = /^\d{2}:\d{2}$/
+    if (!timeRe.test(startTime)) return "Start time must be in 24h format (e.g. 14:30)"
+    if (!timeRe.test(endTime)) return "End time must be in 24h format (e.g. 15:30)"
+    const st = startTime.split(":").map(Number)
+    const et = endTime.split(":").map(Number)
+    if (st[0] > 23 || st[1] > 59) return "Start time is invalid"
+    if (et[0] > 23 || et[1] > 59) return "End time is invalid"
+    if (st[0] > et[0] || (st[0] === et[0] && st[1] >= et[1])) return "Start time must be before end time"
+    return ""
+  }
+
   function toDbTime(date: string, time: string) {
     if (!date || !time) return null
     const d = date.replace(/\//g, "-")
     return `${d}T${time}:00`
   }
 
+  const updateDbError = (msg: string) => setDbError((prev: string) => prev + msg + "\n")
+
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
+    const v = validateClassForm()
+    if (v) { updateDbError(v); return }
     const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
       date: classDate.replace(/\//g, "-"),
@@ -561,7 +585,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
       end_time: toDbTime(classDate, endTime),
       meet_link: meetLink, is_active: true,
     })
-    if (error) { parentLoad(); setDbError((prev: string) => prev + "Failed to create class: " + error.message + "\n"); return }
+    if (error) { parentLoad(); updateDbError("Failed to create class: " + error.message); return }
     setTopic(""); setCurriculum(""); setClassDate(""); setStartTime(""); setEndTime(""); setMeetLink("")
     parentLoad()
   }
@@ -607,12 +631,12 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Start Time (24h)</label>
-            <input type="text" placeholder="e.g. 14:30" value={startTime} onChange={(e) => setStartTime(e.target.value)}
+            <input type="text" placeholder="e.g. 14:30" value={startTime} onChange={(e) => setStartTime(formatTimeInput(e.target.value))}
               className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
           </div>
           <div>
             <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">End Time (24h)</label>
-            <input type="text" placeholder="e.g. 15:30" value={endTime} onChange={(e) => setEndTime(e.target.value)}
+            <input type="text" placeholder="e.g. 15:30" value={endTime} onChange={(e) => setEndTime(formatTimeInput(e.target.value))}
               className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
           </div>
         </div>
