@@ -136,7 +136,7 @@ export default function AdminPage() {
     e.preventDefault()
     const { error } = await supabase.from("live_classes").insert({
       title: liveForm.title, curriculum: liveForm.curriculum || null,
-      join_link: liveForm.join_link, is_live: liveForm.is_live,
+      join_link: liveForm.join_link || null, is_live: liveForm.is_live,
       notes: liveForm.notes || null, created_by: user!.id,
     })
     if (error) { setDbError((prev) => prev + "Failed to create live class: " + error.message + "\n"); return }
@@ -149,7 +149,7 @@ export default function AdminPage() {
     if (!editingLiveId) return
     const { error } = await supabase.from("live_classes").update({
       title: liveForm.title, curriculum: liveForm.curriculum || null,
-      join_link: liveForm.join_link, is_live: liveForm.is_live,
+      join_link: liveForm.join_link || null, is_live: liveForm.is_live,
       notes: liveForm.notes || null,
     }).eq("id", editingLiveId)
     if (error) { setDbError((prev) => prev + "Failed to update live class: " + error.message + "\n"); return }

@@ -61,7 +61,8 @@ export function ScheduleSection() {
       .eq("is_live", true)
       .not("join_link", "is", null)
       .limit(1)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error("ScheduleSection live_classes error:", error)
         if (data && data.length > 0) setNextLiveClass(data[0])
       })
   }, [user])
