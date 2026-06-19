@@ -538,14 +538,15 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
 
   function toDbTime(date: string, time: string) {
     if (!date || !time) return null
-    return `${date}T${time}:00`
+    const d = date.replace(/\//g, "-")
+    return `${d}T${time}:00`
   }
 
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
     const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
-      date: classDate,
+      date: classDate.replace(/\//g, "-"),
       time: startTime,
       start_time: toDbTime(classDate, startTime),
       end_time: toDbTime(classDate, endTime),
@@ -590,7 +591,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
 
         <div>
           <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Date</label>
-          <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)}
+          <input type="text" placeholder="YYYY/MM/DD" value={classDate} onChange={(e) => setClassDate(e.target.value)}
             className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
         </div>
 
