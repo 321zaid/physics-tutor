@@ -235,12 +235,18 @@ export default function AdminPage() {
               {profile?.email} &middot; {profile?.role}
             </p>
           </div>
-          {isAdmin && (
-            <button onClick={downloadCSV}
+          <div className="flex items-center gap-3">
+            <a href="/"
               className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
-              Export CSV
-            </button>
-          )}
+              ← Back to Site
+            </a>
+            {isAdmin && (
+              <button onClick={downloadCSV}
+                className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
+                Export CSV
+              </button>
+            )}
+          </div>
         </div>
 
           {dbError && (
