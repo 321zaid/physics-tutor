@@ -524,18 +524,35 @@ export default function AdminPage() {
 function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => void; classes: Class[] }) {
   const [topic, setTopic] = useState("")
   const [curriculum, setCurriculum] = useState("")
-  const [startTime, setStartTime] = useState("")
-  const [endTime, setEndTime] = useState("")
+  const [classDate, setClassDate] = useState("")
+  const [startHour, setStartHour] = useState("")
+  const [startMin, setStartMin] = useState("")
+  const [startAmPm, setStartAmPm] = useState("AM")
+  const [endHour, setEndHour] = useState("")
+  const [endMin, setEndMin] = useState("")
+  const [endAmPm, setEndAmPm] = useState("AM")
   const [meetLink, setMeetLink] = useState("")
+
+  const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"))
+  const MINS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
+
+  function toDbTime(date: string, hour: string, min: string, ampm: string) {
+    if (!date || !hour || !min) return null
+    const h = ampm === "PM" && hour !== "12" ? String(Number(hour) + 12)
+      : ampm === "AM" && hour === "12" ? "00"
+      : hour
+    return `${date}T${h}:${min}:00`
+  }
 
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
     await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
-      start_time: startTime || null, end_time: endTime || null,
+      start_time: toDbTime(classDate, startHour, startMin, startAmPm),
+      end_time: toDbTime(classDate, endHour, endMin, endAmPm),
       meet_link: meetLink,
     })
-    setTopic(""); setCurriculum(""); setStartTime(""); setEndTime(""); setMeetLink("")
+    setTopic(""); setCurriculum(""); setClassDate(""); setStartHour(""); setStartMin(""); setStartAmPm("AM"); setEndHour(""); setEndMin(""); setEndAmPm("AM"); setMeetLink("")
     parentLoad()
   }
 
@@ -546,7 +563,16 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
 
   function formatClassTime(d: string | null) {
     if (!d) return "-"
-    try { return new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) } catch { return d }
+    try {
+      const dt = new Date(d)
+      const y = dt.getFullYear()
+      const m = String(dt.getMonth() + 1).padStart(2, "0")
+      const day = String(dt.getDate()).padStart(2, "0")
+      let h = dt.getHours()
+      const ampm = h >= 12 ? "PM" : "AM"
+      h = h % 12 || 12
+      return `${y}/${m}/${day} ${String(h).padStart(2, "0")}:${String(dt.getMinutes()).padStart(2, "0")} ${ampm}`
+    } catch { return d }
   }
 
   return (
@@ -557,15 +583,63 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
         <select value={curriculum} onChange={(e) => setCurriculum(e.target.value)}
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
-          <option value="">Select curriculum (optional)</option>
+          <option value="">Select curriculum</option>
           {CURRICULA.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <div className="grid grid-cols-2 gap-3">
-          <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)}
-            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
-          <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)}
-            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
+
+        <div>
+          <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Date</label>
+          <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)}
+            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
         </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Start Time</label>
+            <div className="flex gap-1">
+              <select value={startHour} onChange={(e) => setStartHour(e.target.value)}
+                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
+                <option value="">HH</option>
+                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+              <span className="flex items-center text-text-dim text-sm">:</span>
+              <select value={startMin} onChange={(e) => setStartMin(e.target.value)}
+                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
+                <option value="">MM</option>
+                {MINS.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <div className="flex flex-col">
+                <button type="button" onClick={() => setStartAmPm("AM")}
+                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${startAmPm === "AM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>AM</button>
+                <button type="button" onClick={() => setStartAmPm("PM")}
+                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${startAmPm === "PM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>PM</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">End Time</label>
+            <div className="flex gap-1">
+              <select value={endHour} onChange={(e) => setEndHour(e.target.value)}
+                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
+                <option value="">HH</option>
+                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
+              </select>
+              <span className="flex items-center text-text-dim text-sm">:</span>
+              <select value={endMin} onChange={(e) => setEndMin(e.target.value)}
+                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
+                <option value="">MM</option>
+                {MINS.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+              <div className="flex flex-col">
+                <button type="button" onClick={() => setEndAmPm("AM")}
+                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${endAmPm === "AM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>AM</button>
+                <button type="button" onClick={() => setEndAmPm("PM")}
+                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${endAmPm === "PM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>PM</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <input placeholder="Google Meet link" value={meetLink} onChange={(e) => setMeetLink(e.target.value)}
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
         <button type="submit" className="w-full px-8 py-3 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
