@@ -5,3 +5,7 @@ alter table public.classes
 
 create index if not exists idx_classes_start_time
   on public.classes(start_time);
+
+alter table public.live_classes
+  alter column subject drop not null,
+  alter column curriculum drop not null;

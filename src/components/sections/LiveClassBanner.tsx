@@ -24,16 +24,15 @@ export function LiveClassBanner() {
         if (!p) { setLoading(false); return }
         setRole(p.role)
         setAccess(p.access)
-        if (u.email !== "zaid123was@gmail.com" && p.role !== "super_admin" && p.role !== "admin" && p.access && p.subject && p.curriculum) {
-          const { data: lc } = await supabase
+        if (u.email !== "zaid123was@gmail.com" && p.role !== "super_admin" && p.role !== "admin" && p.access) {
+          let query = supabase
             .from("live_classes")
             .select("*")
-            .eq("subject", p.subject)
-            .eq("curriculum", p.curriculum)
             .eq("is_live", true)
             .not("join_link", "is", null)
-            .limit(1)
-            .maybeSingle()
+          if (p.subject) query = query.eq("subject", p.subject)
+          if (p.curriculum) query = query.eq("curriculum", p.curriculum)
+          const { data: lc } = await query.limit(1).maybeSingle()
           if (lc) setLiveClass(lc)
         }
       }
@@ -109,7 +108,7 @@ export function LiveClassBanner() {
             <p className="text-sm text-text-primary font-medium">
               <span className="text-text-muted">Live now:</span> {liveClass.title}
             </p>
-            <span className="text-[10px] uppercase tracking-wider text-text-dim">{liveClass.subject} &middot; {liveClass.curriculum}</span>
+            <span className="text-[10px] uppercase tracking-wider text-text-dim">{liveClass.curriculum}</span>
           </div>
           <a
             href={liveClass.join_link}

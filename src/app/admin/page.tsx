@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useMemo } from "react"
+import { useEffect, useState, useCallback, useMemo, type Dispatch, type SetStateAction } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase, type Profile, type LiveClass, type Class } from "@/lib/supabase"
 import AnimatedToggle from "@/components/AnimatedToggle"
@@ -134,11 +134,12 @@ export default function AdminPage() {
 
   const createLive = async (e: React.FormEvent) => {
     e.preventDefault()
-    await supabase.from("live_classes").insert({
-      title: liveForm.title, curriculum: liveForm.curriculum,
+    const { error } = await supabase.from("live_classes").insert({
+      title: liveForm.title, curriculum: liveForm.curriculum || null,
       join_link: liveForm.join_link, is_live: liveForm.is_live,
       notes: liveForm.notes || null, created_by: user!.id,
     })
+    if (error) { setDbError((prev) => prev + "Failed to create live class: " + error.message + "\n"); return }
     setLiveForm({ title: "", curriculum: "", join_link: "", is_live: false, notes: "" })
     loadData()
   }
@@ -146,11 +147,12 @@ export default function AdminPage() {
   const updateLive = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingLiveId) return
-    await supabase.from("live_classes").update({
-      title: liveForm.title, curriculum: liveForm.curriculum,
+    const { error } = await supabase.from("live_classes").update({
+      title: liveForm.title, curriculum: liveForm.curriculum || null,
       join_link: liveForm.join_link, is_live: liveForm.is_live,
       notes: liveForm.notes || null,
     }).eq("id", editingLiveId)
+    if (error) { setDbError((prev) => prev + "Failed to update live class: " + error.message + "\n"); return }
     setEditingLiveId(null)
     setLiveForm({ title: "", curriculum: "", join_link: "", is_live: false, notes: "" })
     loadData()
@@ -166,12 +168,14 @@ export default function AdminPage() {
   }
 
   const deleteLive = async (id: string) => {
-    await supabase.from("live_classes").delete().eq("id", id)
+    const { error } = await supabase.from("live_classes").delete().eq("id", id)
+    if (error) setDbError((prev) => prev + "Failed to delete live class: " + error.message + "\n")
     loadData()
   }
 
   const toggleLive = async (id: string, current: boolean | null) => {
-    await supabase.from("live_classes").update({ is_live: !current }).eq("id", id)
+    const { error } = await supabase.from("live_classes").update({ is_live: !current }).eq("id", id)
+    if (error) setDbError((prev) => prev + "Failed to toggle live class: " + error.message + "\n")
     loadData()
   }
 
@@ -518,20 +522,20 @@ export default function AdminPage() {
         </section>
 
         {/* CLASS MANAGEMENT */}
-        <ClassesSection loadData={loadData} classes={classes} />
+        <ClassesSection loadData={loadData} classes={classes} setDbError={setDbError} />
 
       </div>
     </div>
   )
 }
 
-function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => void; classes: Class[] }) {
+function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadData: () => void; classes: Class[]; setDbError: Dispatch<SetStateAction<string>> }) {
   const [topic, setTopic] = useState("")
   const [curriculum, setCurriculum] = useState("")
   const [classDate, setClassDate] = useState("")
   const [startHour, setStartHour] = useState("")
   const [startMin, setStartMin] = useState("")
-  const [startAmPm, setStartAmPm] = useState("AM")
+  const [startAmPm, setStartAmPm] = useState("PM")
   const [endHour, setEndHour] = useState("")
   const [endMin, setEndMin] = useState("")
   const [endAmPm, setEndAmPm] = useState("AM")
@@ -550,18 +554,20 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
 
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
-    await supabase.from("classes").insert({
+    const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
       start_time: toDbTime(classDate, startHour, startMin, startAmPm),
       end_time: toDbTime(classDate, endHour, endMin, endAmPm),
       meet_link: meetLink,
     })
-    setTopic(""); setCurriculum(""); setClassDate(""); setStartHour(""); setStartMin(""); setStartAmPm("AM"); setEndHour(""); setEndMin(""); setEndAmPm("AM"); setMeetLink("")
+    if (error) { parentLoad(); setDbError((prev: string) => prev + "Failed to create class: " + error.message + "\n"); return }
+    setTopic(""); setCurriculum(""); setClassDate(""); setStartHour(""); setStartMin(""); setStartAmPm("PM"); setEndHour(""); setEndMin(""); setEndAmPm("PM"); setMeetLink("")
     parentLoad()
   }
 
   const deleteClass = async (id: string) => {
-    await supabase.from("classes").delete().eq("id", id)
+    const { error } = await supabase.from("classes").delete().eq("id", id)
+    if (error) setDbError((prev) => prev + "Failed to delete class: " + error.message + "\n")
     parentLoad()
   }
 
