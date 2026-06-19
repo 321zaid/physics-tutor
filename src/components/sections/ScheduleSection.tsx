@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { motion } from "framer-motion"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import type { User } from "@supabase/supabase-js"
@@ -23,6 +24,41 @@ export function ScheduleSection() {
   const [nextClass, setNextClass] = useState<Class | null>(null)
   const [nextLiveClass, setNextLiveClass] = useState<LiveClass | null>(null)
   const [role, setRole] = useState<string | null>(null)
+  const [classStatus, setClassStatus] = useState<"upcoming" | "live" | "ended" | null>(null)
+  const [countdown, setCountdown] = useState("")
+
+  function getClassStatus(start: Date, end: Date): "upcoming" | "live" | "ended" {
+    const now = Date.now()
+    if (now < start.getTime()) return "upcoming"
+    if (now > end.getTime()) return "ended"
+    return "live"
+  }
+
+  function formatCountdown(target: Date): string {
+    const diff = target.getTime() - Date.now()
+    if (diff <= 0) return ""
+    const days = Math.floor(diff / 86400000)
+    const hours = Math.floor((diff % 86400000) / 3600000)
+    const minutes = Math.floor((diff % 3600000) / 60000)
+    const seconds = Math.floor((diff % 60000) / 1000)
+    if (days > 0) return `${days}d ${hours}h ${minutes}m ${seconds}s`
+    if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`
+    return `${minutes}m ${seconds}s`
+  }
+
+  useEffect(() => {
+    if (!nextClass?.start_time || !nextClass?.end_time) return
+    const start = new Date(nextClass.start_time)
+    const end = new Date(nextClass.end_time)
+    setClassStatus(getClassStatus(start, end))
+    const tick = () => {
+      setCountdown(formatCountdown(start))
+      setClassStatus(getClassStatus(start, end))
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [nextClass])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -273,8 +309,10 @@ export function ScheduleSection() {
                 )
               }
               if (nextClass) {
+                const start = nextClass.start_time ? new Date(nextClass.start_time) : null
+                const end = nextClass.end_time ? new Date(nextClass.end_time) : null
                 return (
-              <div className="space-y-4 mb-8">
+              <div className="space-y-6 mb-8">
                 <div className="schedule-line">
                   <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Topic</p>
                   <p className="text-lg md:text-xl font-semibold text-text-primary">{nextClass.topic}</p>
@@ -285,28 +323,77 @@ export function ScheduleSection() {
                     <p className="text-sm text-text-muted">{nextClass.curriculum}</p>
                   </div>
                 )}
-                <div className="schedule-line grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Start</p>
-                    <p className="text-sm text-text-muted">{new Date(nextClass.start_time!).toLocaleString()}</p>
+                {start && (
+                  <div className="schedule-line">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Date</p>
+                    <p className="text-sm text-text-muted">{start.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
                   </div>
-                  {nextClass.end_time && (
-                    <div>
-                      <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">End</p>
-                      <p className="text-sm text-text-muted">{new Date(nextClass.end_time).toLocaleString()}</p>
-                    </div>
-                  )}
+                )}
+                <div className="schedule-line">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Time</p>
+                  <p className="text-sm text-text-muted">
+                    {start?.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}
+                    {end ? ` — ${end.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZoneName: "short" })}` : ""}
+                  </p>
                 </div>
                 <div className="schedule-line">
                   <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Platform</p>
                   <p className="text-sm text-text-muted">Google Meet</p>
                 </div>
-                <div className="schedule-line">
-                  <a href={nextClass.meet_link} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-full px-8 py-4 bg-primary text-white font-semibold text-sm uppercase tracking-wider rounded-none hover:opacity-90 transition-all duration-500">
-                    Join Google Meet
-                  </a>
-                </div>
+
+                {classStatus === "upcoming" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="schedule-line text-center py-6 space-y-3"
+                  >
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-accent-lime">Starts in</p>
+                    <p className="text-3xl md:text-4xl font-bold text-text-primary tabular-nums tracking-tight">
+                      {countdown}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      Class starts at{" "}
+                      <span className="text-text-primary font-medium">
+                        {start?.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </p>
+                    <div className="pt-4">
+                      <a href={nextClass.meet_link} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center px-6 py-2.5 border border-border text-text-muted text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
+                        Open Meet Link Early
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
+
+                {classStatus === "live" && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="schedule-line"
+                  >
+                    <div className="relative group">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-accent-lime/40 via-accent-lime/20 to-accent-lime/40 rounded-none blur-md opacity-75 group-hover:opacity-100 transition-all duration-500" />
+                      <a href={nextClass.meet_link} target="_blank" rel="noopener noreferrer"
+                        className="relative flex items-center justify-center gap-3 w-full px-8 py-5 bg-bg text-accent-lime font-bold text-lg uppercase tracking-wider rounded-none border border-accent-lime/30 group-hover:bg-accent-lime/10 transition-all duration-500">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-lime opacity-75" />
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-lime" />
+                        </span>
+                        Join Google Meet
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
+
+                {classStatus === "ended" && (
+                  <div className="schedule-line text-center py-6">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-2">Class ended</p>
+                    <p className="text-sm text-text-muted">This class has already finished.</p>
+                  </div>
+                )}
+
                 <div className="schedule-line pt-6 border-t border-border">
                   {recordingRequestNotice}
                 </div>
