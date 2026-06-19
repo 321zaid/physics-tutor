@@ -538,7 +538,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
   const [startAmPm, setStartAmPm] = useState("PM")
   const [endHour, setEndHour] = useState("")
   const [endMin, setEndMin] = useState("")
-  const [endAmPm, setEndAmPm] = useState("AM")
+  const [endAmPm, setEndAmPm] = useState("PM")
   const [meetLink, setMeetLink] = useState("")
 
   const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"))
@@ -556,9 +556,11 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
     e.preventDefault()
     const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
+      date: classDate,
+      time: `${startHour}:${startMin} ${startAmPm}`,
       start_time: toDbTime(classDate, startHour, startMin, startAmPm),
       end_time: toDbTime(classDate, endHour, endMin, endAmPm),
-      meet_link: meetLink,
+      meet_link: meetLink, is_active: true,
     })
     if (error) { parentLoad(); setDbError((prev: string) => prev + "Failed to create class: " + error.message + "\n"); return }
     setTopic(""); setCurriculum(""); setClassDate(""); setStartHour(""); setStartMin(""); setStartAmPm("PM"); setEndHour(""); setEndMin(""); setEndAmPm("PM"); setMeetLink("")
