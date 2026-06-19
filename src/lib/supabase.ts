@@ -36,8 +36,9 @@ export type Profile = {
 export type Class = {
   id: string
   topic: string
-  date: string
-  time: string
+  curriculum: string | null
+  start_time: string | null
+  end_time: string | null
   meet_link: string
   is_active: boolean
   created_by: string

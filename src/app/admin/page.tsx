@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase, type Profile, type LiveClass } from "@/lib/supabase"
+import { supabase, type Profile, type LiveClass, type Class } from "@/lib/supabase"
 import AnimatedToggle from "@/components/AnimatedToggle"
 
-const SUBJECTS = ["Physics", "Chemistry", "Biology", "Mathematics"]
 const CURRICULA = ["IGCSE", "A-Level", "IB", "AP", "CBSE", "ICSE", "GCSE", "Other", "Edexcel IGCSE (O/L)", "Cambridge IGCSE (O/L)", "Edexcel AS Level", "Cambridge AS Level", "Edexcel A2 Level", "Cambridge A2 Level"]
 const INPUT_CLASS = "w-full px-3 py-2 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim"
 const CELL_CLASS = "py-2.5 px-3 text-sm"
@@ -23,7 +22,7 @@ export default function AdminPage() {
 
   const [students, setStudents] = useState<Profile[]>([])
   const [liveClasses, setLiveClasses] = useState<LiveClass[]>([])
-  const [classes, setClasses] = useState<{ id: string; topic: string; date: string; time: string; meet_link: string; is_active: boolean }[]>([])
+  const [classes, setClasses] = useState<Class[]>([])
 
   const [search, setSearch] = useState("")
   const [filterCurriculum, setFilterCurriculum] = useState("")
@@ -35,8 +34,8 @@ export default function AdminPage() {
   const [dbError, setDbError] = useState("")
 
   const [liveForm, setLiveForm] = useState({
-    title: "", subject: "", curriculum: "", join_link: "", is_live: false,
-    start_time: "", end_time: "", notes: "",
+    title: "", curriculum: "", join_link: "", is_live: false,
+    notes: "",
   })
   const [editingLiveId, setEditingLiveId] = useState<string | null>(null)
 
@@ -45,7 +44,7 @@ export default function AdminPage() {
     const [s, l, c] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("live_classes").select("*").order("created_at", { ascending: false }),
-      supabase.from("classes").select("*").order("date", { ascending: false }),
+      supabase.from("classes").select("*").order("start_time", { ascending: false }),
     ])
     if (s.error) setDbError((prev) => prev + "Profiles error: " + s.error.message + "\n")
     if (l.error) setDbError((prev) => prev + "Live classes error: " + l.error.message + "\n")
@@ -135,12 +134,11 @@ export default function AdminPage() {
   const createLive = async (e: React.FormEvent) => {
     e.preventDefault()
     await supabase.from("live_classes").insert({
-      title: liveForm.title, subject: liveForm.subject, curriculum: liveForm.curriculum,
+      title: liveForm.title, curriculum: liveForm.curriculum,
       join_link: liveForm.join_link, is_live: liveForm.is_live,
-      start_time: liveForm.start_time || null, end_time: liveForm.end_time || null,
       notes: liveForm.notes || null, created_by: user!.id,
     })
-    setLiveForm({ title: "", subject: "", curriculum: "", join_link: "", is_live: false, start_time: "", end_time: "", notes: "" })
+    setLiveForm({ title: "", curriculum: "", join_link: "", is_live: false, notes: "" })
     loadData()
   }
 
@@ -148,22 +146,20 @@ export default function AdminPage() {
     e.preventDefault()
     if (!editingLiveId) return
     await supabase.from("live_classes").update({
-      title: liveForm.title, subject: liveForm.subject, curriculum: liveForm.curriculum,
+      title: liveForm.title, curriculum: liveForm.curriculum,
       join_link: liveForm.join_link, is_live: liveForm.is_live,
-      start_time: liveForm.start_time || null, end_time: liveForm.end_time || null,
       notes: liveForm.notes || null,
     }).eq("id", editingLiveId)
     setEditingLiveId(null)
-    setLiveForm({ title: "", subject: "", curriculum: "", join_link: "", is_live: false, start_time: "", end_time: "", notes: "" })
+    setLiveForm({ title: "", curriculum: "", join_link: "", is_live: false, notes: "" })
     loadData()
   }
 
   const editLive = (lc: LiveClass) => {
     setEditingLiveId(lc.id)
     setLiveForm({
-      title: lc.title, subject: lc.subject, curriculum: lc.curriculum,
+      title: lc.title, curriculum: lc.curriculum,
       join_link: lc.join_link, is_live: lc.is_live ?? false,
-      start_time: lc.start_time?.slice(0, 16) ?? "", end_time: lc.end_time?.slice(0, 16) ?? "",
       notes: lc.notes ?? "",
     })
   }
@@ -451,14 +447,6 @@ export default function AdminPage() {
                 className={INPUT_CLASS} placeholder="e.g. Forces & Motion Review" />
             </div>
             <div>
-              <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Subject</label>
-              <select value={liveForm.subject} onChange={(e) => setLiveForm({ ...liveForm, subject: e.target.value })} required
-                className={INPUT_CLASS}>
-                <option value="">Select...</option>
-                {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
               <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Curriculum</label>
               <select value={liveForm.curriculum} onChange={(e) => setLiveForm({ ...liveForm, curriculum: e.target.value })} required
                 className={INPUT_CLASS}>
@@ -470,16 +458,6 @@ export default function AdminPage() {
               <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Join Link</label>
               <input value={liveForm.join_link} onChange={(e) => setLiveForm({ ...liveForm, join_link: e.target.value })} required
                 className={INPUT_CLASS} placeholder="Zoom / Meet URL" />
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Start Time</label>
-              <input type="datetime-local" value={liveForm.start_time} onChange={(e) => setLiveForm({ ...liveForm, start_time: e.target.value })}
-                className={INPUT_CLASS} />
-            </div>
-            <div>
-              <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">End Time</label>
-              <input type="datetime-local" value={liveForm.end_time} onChange={(e) => setLiveForm({ ...liveForm, end_time: e.target.value })}
-                className={INPUT_CLASS} />
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Notes</label>
@@ -496,7 +474,7 @@ export default function AdminPage() {
                 {editingLiveId ? "Update" : "Create"}
               </button>
               {editingLiveId && (
-                <button type="button" onClick={() => { setEditingLiveId(null); setLiveForm({ title: "", subject: "", curriculum: "", join_link: "", is_live: false, start_time: "", end_time: "", notes: "" }) }}
+                <button type="button" onClick={() => { setEditingLiveId(null); setLiveForm({ title: "", curriculum: "", join_link: "", is_live: false, notes: "" }) }}
                   className="px-5 py-2 border border-border text-text-muted text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
                   Cancel
                 </button>
@@ -514,12 +492,10 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2">
                       <span className={`inline-block w-2 h-2 rounded-full ${lc.is_live ? "bg-green-400" : "bg-text-dim"}`} />
                       <span className="text-sm font-medium text-text-primary">{lc.title}</span>
-                      <span className="text-[10px] uppercase tracking-wider text-text-dim">{lc.subject}</span>
                       <span className="text-[10px] uppercase tracking-wider text-text-dim">{lc.curriculum}</span>
                     </div>
                     <p className="text-xs text-text-muted mt-1">
                       {lc.join_link}
-                      {lc.start_time && <> &middot; {new Date(lc.start_time).toLocaleString()}</>}
                       {lc.notes && <> &middot; {lc.notes}</>}
                     </p>
                   </div>
@@ -545,16 +521,21 @@ export default function AdminPage() {
   )
 }
 
-function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => void; classes: { id: string; topic: string; date: string; time: string; meet_link: string; is_active: boolean }[] }) {
+function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => void; classes: Class[] }) {
   const [topic, setTopic] = useState("")
-  const [classDate, setClassDate] = useState("")
-  const [classTime, setClassTime] = useState("")
+  const [curriculum, setCurriculum] = useState("")
+  const [startTime, setStartTime] = useState("")
+  const [endTime, setEndTime] = useState("")
   const [meetLink, setMeetLink] = useState("")
 
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
-    await supabase.from("classes").insert({ topic, date: classDate, time: classTime, meet_link: meetLink })
-    setTopic(""); setClassDate(""); setClassTime(""); setMeetLink("")
+    await supabase.from("classes").insert({
+      topic, curriculum: curriculum || null,
+      start_time: startTime || null, end_time: endTime || null,
+      meet_link: meetLink,
+    })
+    setTopic(""); setCurriculum(""); setStartTime(""); setEndTime(""); setMeetLink("")
     parentLoad()
   }
 
@@ -563,17 +544,27 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
     parentLoad()
   }
 
+  function formatClassTime(d: string | null) {
+    if (!d) return "-"
+    try { return new Date(d).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) } catch { return d }
+  }
+
   return (
     <section className="bg-bg-alt border border-border p-5 mb-8">
       <h2 className="text-lg font-semibold text-text-primary mb-4">Create Class</h2>
       <form onSubmit={createClass} className="space-y-3">
         <input placeholder="Topic" value={topic} onChange={(e) => setTopic(e.target.value)}
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
+        <select value={curriculum} onChange={(e) => setCurriculum(e.target.value)}
+          className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
+          <option value="">Select curriculum (optional)</option>
+          {CURRICULA.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
         <div className="grid grid-cols-2 gap-3">
-          <input type="date" value={classDate} onChange={(e) => setClassDate(e.target.value)}
-            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-          <input type="time" value={classTime} onChange={(e) => setClassTime(e.target.value)}
-            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
+          <input type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)}
+            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
+          <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)}
+            className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
         </div>
         <input placeholder="Google Meet link" value={meetLink} onChange={(e) => setMeetLink(e.target.value)}
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
@@ -589,7 +580,10 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
             <div key={c.id} className="flex items-center justify-between bg-bg px-4 py-3 border border-border text-sm">
               <div>
                 <p className="text-text-primary font-medium">{c.topic}</p>
-                <p className="text-text-muted text-xs">{c.date} at {c.time}</p>
+                <p className="text-text-muted text-xs">
+                  {c.curriculum && <>{c.curriculum} &middot; </>}
+                  {formatClassTime(c.start_time)}{c.end_time ? <> - {formatClassTime(c.end_time)}</> : ""}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 {c.is_active && <span className="text-[10px] uppercase tracking-wider text-green-400">Active</span>}

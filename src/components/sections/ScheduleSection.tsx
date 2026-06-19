@@ -49,7 +49,7 @@ export function ScheduleSection() {
       .from("classes")
       .select("*")
       .eq("is_active", true)
-      .order("date", { ascending: true })
+      .order("start_time", { ascending: true })
       .limit(1)
       .then(({ data }) => {
         if (data && data.length > 0) setNextClass(data[0])
@@ -215,15 +215,23 @@ export function ScheduleSection() {
                   <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Topic</p>
                   <p className="text-lg md:text-xl font-semibold text-text-primary">{nextClass.topic}</p>
                 </div>
+                {nextClass.curriculum && (
+                  <div className="schedule-line">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Curriculum</p>
+                    <p className="text-sm text-text-muted">{nextClass.curriculum}</p>
+                  </div>
+                )}
                 <div className="schedule-line grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Date</p>
-                    <p className="text-sm text-text-muted">{nextClass.date}</p>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Start</p>
+                    <p className="text-sm text-text-muted">{new Date(nextClass.start_time!).toLocaleString()}</p>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Time</p>
-                    <p className="text-sm text-text-muted">{nextClass.time}</p>
-                  </div>
+                  {nextClass.end_time && (
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">End</p>
+                      <p className="text-sm text-text-muted">{new Date(nextClass.end_time).toLocaleString()}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="schedule-line">
                   <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Platform</p>
