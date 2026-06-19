@@ -30,8 +30,9 @@ export function LiveClassBanner() {
             .select("*")
             .eq("is_live", true)
             .not("join_link", "is", null)
-          if (p.subject) query = query.eq("subject", p.subject)
-          if (p.curriculum) query = query.eq("curriculum", p.curriculum)
+          if (p.curriculum) {
+            query = query.or(`curriculum.eq.${p.curriculum},curriculum.is.null`)
+          }
           const { data: lc } = await query.limit(1).maybeSingle()
           if (lc) setLiveClass(lc)
         }

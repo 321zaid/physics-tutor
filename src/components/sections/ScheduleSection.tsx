@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import type { User } from "@supabase/supabase-js"
-import { supabase, type Class, ensureProfile, updateLastLogin } from "@/lib/supabase"
+import { supabase, type Class, type LiveClass, ensureProfile, updateLastLogin } from "@/lib/supabase"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -21,6 +21,7 @@ export function ScheduleSection() {
   const [resendMessage, setResendMessage] = useState("")
   const [user, setUser] = useState<User | null>(null)
   const [nextClass, setNextClass] = useState<Class | null>(null)
+  const [nextLiveClass, setNextLiveClass] = useState<LiveClass | null>(null)
   const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
@@ -53,6 +54,15 @@ export function ScheduleSection() {
       .limit(1)
       .then(({ data }) => {
         if (data && data.length > 0) setNextClass(data[0])
+      })
+    supabase
+      .from("live_classes")
+      .select("*")
+      .eq("is_live", true)
+      .not("join_link", "is", null)
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setNextLiveClass(data[0])
       })
   }, [user])
 
@@ -194,22 +204,75 @@ export function ScheduleSection() {
                   Don&apos;t have an account? <a href="#enroll" className="underline">Sign up</a>
                 </p>
               </form>
-            ) : user.email === "zaid123was@gmail.com" || role === "super_admin" || role === "admin" ? (
-              <div className="schedule-line text-center py-8 space-y-4">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
-                <p className="text-text-muted">
-                  You are logged in as an admin. Use the Admin dashboard to manage students, payments, access, and live classes.
-                </p>
-                <div className="pt-4">
-                  <a
-                    href="/admin"
-                    className="inline-flex items-center justify-center px-8 py-3 border border-border text-text-primary font-semibold text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
-                  >
-                    Open Admin Dashboard
-                  </a>
+            ) : (() => {
+              const isAdmin = user.email === "zaid123was@gmail.com" || role === "super_admin" || role === "admin"
+              if (isAdmin && nextLiveClass) {
+                return (
+                <div className="space-y-4 mb-8">
+                  <div className="schedule-line">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-accent-lime mb-1">Live Now</p>
+                    <p className="text-lg md:text-xl font-semibold text-text-primary">{nextLiveClass.title}</p>
+                  </div>
+                  {nextLiveClass.notes && (
+                    <div className="schedule-line">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Notes</p>
+                      <p className="text-sm text-text-muted">{nextLiveClass.notes}</p>
+                    </div>
+                  )}
+                  <div className="schedule-line">
+                    <a href={nextLiveClass.join_link} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-full px-8 py-4 bg-primary text-white font-semibold text-sm uppercase tracking-wider rounded-none hover:opacity-90 transition-all duration-500">
+                      Join Live Class
+                    </a>
+                  </div>
                 </div>
-              </div>
-            ) : nextClass ? (
+                )
+              }
+              if (isAdmin) {
+                return (
+                <div className="schedule-line text-center py-8 space-y-4">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-text-dim mb-1">Info</p>
+                  <p className="text-text-muted">
+                    You are logged in as an admin. Use the Admin dashboard to manage students, payments, access, and live classes.
+                  </p>
+                  <div className="pt-4">
+                    <a
+                      href="/admin"
+                      className="inline-flex items-center justify-center px-8 py-3 border border-border text-text-primary font-semibold text-xs uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500"
+                    >
+                      Open Admin Dashboard
+                    </a>
+                  </div>
+                </div>
+                )
+              }
+              if (nextLiveClass) {
+                return (
+                <div className="space-y-4 mb-8">
+                  <div className="schedule-line">
+                    <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-accent-lime mb-1">Live Now</p>
+                    <p className="text-lg md:text-xl font-semibold text-text-primary">{nextLiveClass.title}</p>
+                  </div>
+                  {nextLiveClass.notes && (
+                    <div className="schedule-line">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Notes</p>
+                      <p className="text-sm text-text-muted">{nextLiveClass.notes}</p>
+                    </div>
+                  )}
+                  <div className="schedule-line">
+                    <a href={nextLiveClass.join_link} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-full px-8 py-4 bg-primary text-white font-semibold text-sm uppercase tracking-wider rounded-none hover:opacity-90 transition-all duration-500">
+                      Join Live Class
+                    </a>
+                  </div>
+                  <div className="schedule-line pt-6 border-t border-border">
+                    {recordingRequestNotice}
+                  </div>
+                </div>
+                )
+              }
+              if (nextClass) {
+                return (
               <div className="space-y-4 mb-8">
                 <div className="schedule-line">
                   <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-1">Topic</p>
@@ -246,13 +309,16 @@ export function ScheduleSection() {
                 <div className="schedule-line pt-6 border-t border-border">
                   {recordingRequestNotice}
                 </div>
-              </div>
-            ) : (
-              <div className="schedule-line text-center py-8 space-y-4">
-                <p className="text-text-muted">No upcoming class scheduled.</p>
-                {recordingRequestNotice}
-              </div>
-            )}
+                </div>
+                )
+              }
+              return (
+                <div className="schedule-line text-center py-8 space-y-4">
+                  <p className="text-text-muted">No upcoming class scheduled.</p>
+                  {recordingRequestNotice}
+                </div>
+              )
+            })()}
 
             {user && (
               <div className="schedule-line mt-6 pt-6 border-t border-border">
