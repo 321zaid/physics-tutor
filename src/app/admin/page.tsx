@@ -458,7 +458,7 @@ export default function AdminPage() {
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Join Link</label>
               <input value={liveForm.join_link} onChange={(e) => setLiveForm({ ...liveForm, join_link: e.target.value })} required
-                className={INPUT_CLASS} placeholder="Zoom / Meet URL" />
+                className={INPUT_CLASS} placeholder="Google Meet link" />
             </div>
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Notes</label>
