@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react"
 import type { User } from "@supabase/supabase-js"
 import { supabase, type Profile, type LiveClass, type Class } from "@/lib/supabase"
 import AnimatedToggle from "@/components/AnimatedToggle"
+import AmPmToggle from "@/components/AmPmToggle"
 
 const CURRICULA = ["IGCSE", "A-Level", "IB", "AP", "CBSE", "ICSE", "GCSE", "Other", "Edexcel IGCSE (O/L)", "Cambridge IGCSE (O/L)", "Edexcel AS Level", "Cambridge AS Level", "Edexcel A2 Level", "Cambridge A2 Level"]
 const INPUT_CLASS = "w-full px-3 py-2 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim"
@@ -465,11 +466,14 @@ export default function AdminPage() {
                 className={INPUT_CLASS} placeholder="Optional notes..." />
             </div>
             <div className="flex items-end gap-3">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={liveForm.is_live} onChange={(e) => setLiveForm({ ...liveForm, is_live: e.target.checked })}
-                  className="accent-text-primary" />
-                <span className="text-[10px] uppercase tracking-wider text-text-dim">Is Live</span>
-              </label>
+              <AnimatedToggle
+                enabled={liveForm.is_live}
+                onChange={() => setLiveForm({ ...liveForm, is_live: !liveForm.is_live })}
+                labelOn="Live"
+                labelOff="Offline"
+                colorOn="text-green-400"
+                colorOff="text-text-dim"
+              />
               <button type="submit" className="px-5 py-2 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
                 {editingLiveId ? "Update" : "Create"}
               </button>
@@ -608,12 +612,7 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
                 <option value="">MM</option>
                 {MINS.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
-              <div className="flex flex-col">
-                <button type="button" onClick={() => setStartAmPm("AM")}
-                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${startAmPm === "AM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>AM</button>
-                <button type="button" onClick={() => setStartAmPm("PM")}
-                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${startAmPm === "PM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>PM</button>
-              </div>
+              <AmPmToggle value={startAmPm as "AM" | "PM"} onChange={setStartAmPm} />
             </div>
           </div>
           <div>
@@ -630,12 +629,7 @@ function ClassesSection({ loadData: parentLoad, classes }: { loadData: () => voi
                 <option value="">MM</option>
                 {MINS.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
-              <div className="flex flex-col">
-                <button type="button" onClick={() => setEndAmPm("AM")}
-                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${endAmPm === "AM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>AM</button>
-                <button type="button" onClick={() => setEndAmPm("PM")}
-                  className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border ${endAmPm === "PM" ? "bg-text-primary text-bg border-text-primary" : "bg-bg text-text-dim border-border"}`}>PM</button>
-              </div>
+              <AmPmToggle value={endAmPm as "AM" | "PM"} onChange={setEndAmPm} />
             </div>
           </div>
         </div>
