@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useMemo, type Dispatch, type SetState
 import type { User } from "@supabase/supabase-js"
 import { supabase, type Profile, type LiveClass, type Class } from "@/lib/supabase"
 import AnimatedToggle from "@/components/AnimatedToggle"
-import AmPmToggle from "@/components/AmPmToggle"
 
 const CURRICULA = ["IGCSE", "A-Level", "IB", "AP", "CBSE", "ICSE", "GCSE", "Other", "Edexcel IGCSE (O/L)", "Cambridge IGCSE (O/L)", "Edexcel AS Level", "Cambridge AS Level", "Edexcel A2 Level", "Cambridge A2 Level"]
 const INPUT_CLASS = "w-full px-3 py-2 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim"
@@ -533,23 +532,13 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
   const [topic, setTopic] = useState("")
   const [curriculum, setCurriculum] = useState("")
   const [classDate, setClassDate] = useState("")
-  const [startHour, setStartHour] = useState("")
-  const [startMin, setStartMin] = useState("")
-  const [startAmPm, setStartAmPm] = useState("PM")
-  const [endHour, setEndHour] = useState("")
-  const [endMin, setEndMin] = useState("")
-  const [endAmPm, setEndAmPm] = useState("PM")
+  const [startTime, setStartTime] = useState("")
+  const [endTime, setEndTime] = useState("")
   const [meetLink, setMeetLink] = useState("")
 
-  const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"))
-  const MINS = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))
-
-  function toDbTime(date: string, hour: string, min: string, ampm: string) {
-    if (!date || !hour || !min) return null
-    const h = ampm === "PM" && hour !== "12" ? String(Number(hour) + 12)
-      : ampm === "AM" && hour === "12" ? "00"
-      : hour
-    return `${date}T${h}:${min}:00`
+  function toDbTime(date: string, time: string) {
+    if (!date || !time) return null
+    return `${date}T${time}:00`
   }
 
   const createClass = async (e: React.FormEvent) => {
@@ -557,13 +546,13 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
     const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
       date: classDate,
-      time: `${startHour}:${startMin} ${startAmPm}`,
-      start_time: toDbTime(classDate, startHour, startMin, startAmPm),
-      end_time: toDbTime(classDate, endHour, endMin, endAmPm),
+      time: startTime,
+      start_time: toDbTime(classDate, startTime),
+      end_time: toDbTime(classDate, endTime),
       meet_link: meetLink, is_active: true,
     })
     if (error) { parentLoad(); setDbError((prev: string) => prev + "Failed to create class: " + error.message + "\n"); return }
-    setTopic(""); setCurriculum(""); setClassDate(""); setStartHour(""); setStartMin(""); setStartAmPm("PM"); setEndHour(""); setEndMin(""); setEndAmPm("PM"); setMeetLink("")
+    setTopic(""); setCurriculum(""); setClassDate(""); setStartTime(""); setEndTime(""); setMeetLink("")
     parentLoad()
   }
 
@@ -607,38 +596,14 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Start Time</label>
-            <div className="flex gap-1">
-              <select value={startHour} onChange={(e) => setStartHour(e.target.value)}
-                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
-                <option value="">HH</option>
-                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-              <span className="flex items-center text-text-dim text-sm">:</span>
-              <select value={startMin} onChange={(e) => setStartMin(e.target.value)}
-                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
-                <option value="">MM</option>
-                {MINS.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-              <AmPmToggle value={startAmPm as "AM" | "PM"} onChange={setStartAmPm} />
-            </div>
+            <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Start Time (24h)</label>
+            <input type="text" placeholder="e.g. 14:30" value={startTime} onChange={(e) => setStartTime(e.target.value)}
+              className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
           </div>
           <div>
-            <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">End Time</label>
-            <div className="flex gap-1">
-              <select value={endHour} onChange={(e) => setEndHour(e.target.value)}
-                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
-                <option value="">HH</option>
-                {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
-              </select>
-              <span className="flex items-center text-text-dim text-sm">:</span>
-              <select value={endMin} onChange={(e) => setEndMin(e.target.value)}
-                className="flex-1 px-3 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim">
-                <option value="">MM</option>
-                {MINS.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-              <AmPmToggle value={endAmPm as "AM" | "PM"} onChange={setEndAmPm} />
-            </div>
+            <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">End Time (24h)</label>
+            <input type="text" placeholder="e.g. 15:30" value={endTime} onChange={(e) => setEndTime(e.target.value)}
+              className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" />
           </div>
         </div>
 
