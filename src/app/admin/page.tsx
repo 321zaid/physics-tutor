@@ -568,7 +568,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
   function toDbTime(date: string, time: string) {
     if (!date || !time) return null
     const d = date.replace(/\//g, "-")
-    return `${d}T${time}:00`
+    return `${d}T${time}:00+05:30`
   }
 
   const updateDbError = (msg: string) => setDbError((prev: string) => prev + msg + "\n")
