@@ -536,6 +536,15 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
   const [endTime, setEndTime] = useState("")
   const [meetLink, setMeetLink] = useState("")
 
+  function formatDateInput(value: string) {
+    const digits = value.replace(/\D/g, "")
+    let out = ""
+    if (digits.length > 0) out = digits.slice(0, 4)
+    if (digits.length > 4) out += "/" + digits.slice(4, 6)
+    if (digits.length > 6) out += "/" + digits.slice(6, 8)
+    return out
+  }
+
   function toDbTime(date: string, time: string) {
     if (!date || !time) return null
     const d = date.replace(/\//g, "-")
@@ -591,7 +600,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
 
         <div>
           <label className="block text-[10px] uppercase tracking-wider text-text-dim mb-1">Date</label>
-          <input type="text" placeholder="YYYY/MM/DD" value={classDate} onChange={(e) => setClassDate(e.target.value)}
+          <input type="text" placeholder="YYYY/MM/DD" value={classDate} onChange={(e) => setClassDate(formatDateInput(e.target.value))}
             className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
         </div>
 
