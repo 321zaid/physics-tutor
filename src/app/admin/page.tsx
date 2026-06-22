@@ -527,20 +527,23 @@ export default function AdminPage() {
         </section>
 
         {/* CLASS MANAGEMENT */}
-        <ClassesSection loadData={loadData} classes={classes} setDbError={setDbError} />
+        <ClassesSection loadData={loadData} classes={classes} setDbError={setDbError} user={user} />
 
       </div>
     </div>
   )
 }
 
-function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadData: () => void; classes: Class[]; setDbError: Dispatch<SetStateAction<string>> }) {
+function ClassesSection({ loadData: parentLoad, classes, setDbError, user }: { loadData: () => void; classes: Class[]; setDbError: Dispatch<SetStateAction<string>>; user: User | null }) {
   const [topic, setTopic] = useState("")
   const [curriculum, setCurriculum] = useState("")
   const [classDate, setClassDate] = useState("")
   const [startTime, setStartTime] = useState("")
   const [endTime, setEndTime] = useState("")
   const [meetLink, setMeetLink] = useState("")
+  const [formError, setFormError] = useState("")
+  const [formSuccess, setFormSuccess] = useState("")
+  const [submitting, setSubmitting] = useState(false)
 
   function formatDateInput(value: string) {
     const digits = value.replace(/\D/g, "")
@@ -581,8 +584,10 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
 
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError(""); setFormSuccess("")
     const v = validateClassForm()
-    if (v) { updateDbError(v); return }
+    if (v) { setFormError(v); return }
+    setSubmitting(true)
     const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
       date: classDate.replace(/\//g, "-"),
@@ -590,9 +595,12 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
       start_time: toDbTime(classDate, startTime),
       end_time: toDbTime(classDate, endTime),
       meet_link: meetLink, is_active: true,
+      created_by: user?.id ?? null,
     })
-    if (error) { parentLoad(); updateDbError("Failed to create class: " + error.message); return }
+    setSubmitting(false)
+    if (error) { setFormError("Failed to create class: " + error.message); parentLoad(); return }
     setTopic(""); setCurriculum(""); setClassDate(""); setStartTime(""); setEndTime(""); setMeetLink("")
+    setFormSuccess("Class published successfully!")
     parentLoad()
   }
 
@@ -619,6 +627,16 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
   return (
     <section className="bg-bg-alt border border-border p-5 mb-8">
       <h2 className="text-lg font-semibold text-text-primary mb-4">Create Class</h2>
+      {formError && (
+        <div className="mb-4 p-3 border border-red-400/50 bg-red-400/5 text-red-400 text-xs">
+          <pre className="whitespace-pre-wrap">{formError}</pre>
+        </div>
+      )}
+      {formSuccess && (
+        <div className="mb-4 p-3 border border-green-400/50 bg-green-400/5 text-green-400 text-xs">
+          <pre className="whitespace-pre-wrap">{formSuccess}</pre>
+        </div>
+      )}
       <form onSubmit={createClass} className="space-y-3">
         <input placeholder="Topic" value={topic} onChange={(e) => setTopic(e.target.value)}
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
@@ -649,8 +667,9 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError }: { loadDat
 
         <input placeholder="Google Meet link" value={meetLink} onChange={(e) => setMeetLink(e.target.value)}
           className="w-full px-4 py-3 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim" required />
-        <button type="submit" className="w-full px-8 py-3 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500">
-          Publish Class
+        <button type="submit" disabled={submitting}
+          className="w-full px-8 py-3 border border-border text-text-primary font-semibold text-sm uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed">
+          {submitting ? "Publishing..." : "Publish Class"}
         </button>
       </form>
 
