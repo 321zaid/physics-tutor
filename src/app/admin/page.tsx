@@ -570,7 +570,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError, user }: { l
     const et = endTime.split(":").map(Number)
     if (st[0] > 23 || st[1] > 59) return "Start time is invalid"
     if (et[0] > 23 || et[1] > 59) return "End time is invalid"
-    if (st[0] > et[0] || (st[0] === et[0] && st[1] >= et[1])) return "Start time must be before end time"
+    if (st[0] === et[0] && st[1] >= et[1]) return "Start time must be before end time"
     return ""
   }
 
@@ -578,6 +578,18 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError, user }: { l
     if (!date || !time) return null
     const d = date.replace(/\//g, "-")
     return `${d}T${time}:00+05:30`
+  }
+
+  function toEndDbTime(startDate: string, startTime: string, endTime: string) {
+    if (!startDate || !startTime || !endTime) return null
+    const st = startTime.split(":").map(Number)
+    const et = endTime.split(":").map(Number)
+    const stMinutes = st[0] * 60 + st[1]
+    const etMinutes = et[0] * 60 + et[1]
+    const dayOffset = etMinutes <= stMinutes ? 1 : 0
+    const base = new Date(startDate.replace(/\//g, "-") + "T" + endTime + ":00+05:30")
+    base.setDate(base.getDate() + dayOffset)
+    return base.toISOString()
   }
 
   const updateDbError = (msg: string) => setDbError((prev: string) => prev + msg + "\n")
@@ -593,7 +605,7 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError, user }: { l
       date: classDate.replace(/\//g, "-"),
       time: startTime,
       start_time: toDbTime(classDate, startTime),
-      end_time: toDbTime(classDate, endTime),
+      end_time: toEndDbTime(classDate, startTime, endTime),
       meet_link: meetLink, is_active: true,
       created_by: user?.id ?? null,
     })
