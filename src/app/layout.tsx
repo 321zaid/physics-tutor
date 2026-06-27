@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   title: "Physics Teacher — Physics, controlled.",
   description: "Premium physics tuition. Exam-focused, visually taught, clearly structured.",
   icons: [{ rel: "icon", type: "image/svg+xml", url: "/favicon.svg" }],
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

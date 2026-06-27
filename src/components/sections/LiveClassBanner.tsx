@@ -24,7 +24,7 @@ export function LiveClassBanner() {
         if (!p) { setLoading(false); return }
         setRole(p.role)
         setAccess(p.access)
-        if (u.email !== "zaid123was@gmail.com" && p.role !== "super_admin" && p.role !== "admin" && p.access) {
+        if (u.email !== "phys@teach.com" && p.role !== "super_admin" && p.role !== "admin" && p.access) {
           let query = supabase
             .from("live_classes")
             .select("*")
@@ -44,7 +44,7 @@ export function LiveClassBanner() {
   if (loading) return null
   if (!user) return null
 
-  const isAdmin = role === "super_admin" || role === "admin" || user.email === "zaid123was@gmail.com"
+  const isAdmin = role === "super_admin" || role === "admin" || user.email === "phys@teach.com"
 
   if (isAdmin) {
     return (

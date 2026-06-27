@@ -62,7 +62,7 @@ export default function EnrollSection() {
       return
     }
 
-    if (authData.session && authData.user?.email !== "zaid123was@gmail.com") {
+    if (authData.session && authData.user?.email !== "phys@teach.com") {
       await supabase.auth.signOut()
     }
 

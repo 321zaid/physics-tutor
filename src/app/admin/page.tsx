@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useMemo, type Dispatch, type SetStateAction } from "react"
+import Link from "next/link"
 import type { User } from "@supabase/supabase-js"
 import { supabase, type Profile, type LiveClass, type Class } from "@/lib/supabase"
 import AnimatedToggle from "@/components/AnimatedToggle"
@@ -8,7 +9,7 @@ import AnimatedToggle from "@/components/AnimatedToggle"
 const CURRICULA = ["IGCSE", "A-Level", "IB", "AP", "CBSE", "ICSE", "GCSE", "Other", "Edexcel IGCSE (O/L)", "Cambridge IGCSE (O/L)", "Edexcel AS Level", "Cambridge AS Level", "Edexcel A2 Level", "Cambridge A2 Level"]
 const INPUT_CLASS = "w-full px-3 py-2 bg-bg border border-border text-text-primary text-sm rounded-none focus:outline-none focus:border-text-dim"
 const CELL_CLASS = "py-2.5 px-3 text-sm"
-const ZAID_EMAIL = "zaid123was@gmail.com"
+const ZAID_EMAIL = "phys@teach.com"
 
 function formatDate(d: string | null | undefined) {
   if (!d) return "-"
@@ -236,10 +237,10 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <a href="/"
+            <Link href="/"
               className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
               ← Back to Site
-            </a>
+            </Link>
             {isAdmin && (
               <button onClick={downloadCSV}
                 className="px-5 py-2.5 border border-border text-text-primary text-xs font-semibold uppercase tracking-wider rounded-none hover:bg-surface-hover transition-all duration-300">
@@ -592,8 +593,6 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError, user }: { l
     return base.toISOString()
   }
 
-  const updateDbError = (msg: string) => setDbError((prev: string) => prev + msg + "\n")
-
   const createClass = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError(""); setFormSuccess("")
@@ -602,8 +601,6 @@ function ClassesSection({ loadData: parentLoad, classes, setDbError, user }: { l
     setSubmitting(true)
     const { error } = await supabase.from("classes").insert({
       topic, curriculum: curriculum || null,
-      date: classDate.replace(/\//g, "-"),
-      time: startTime,
       start_time: toDbTime(classDate, startTime),
       end_time: toEndDbTime(classDate, startTime, endTime),
       meet_link: meetLink, is_active: true,

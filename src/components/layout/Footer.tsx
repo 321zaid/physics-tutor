@@ -8,6 +8,12 @@ const links = [
   { label: "Join", href: "#join" },
 ]
 
+const legal = [
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Terms of Service", href: "/terms" },
+  { label: "Cookie Policy", href: "/cookies" },
+]
+
 export function Footer() {
   return (
     <footer className="bg-bg-solid border-t border-border">
@@ -43,10 +49,26 @@ export function Footer() {
           </div>
           <div>
             <h4 className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-4">
+              Legal
+            </h4>
+            <div className="space-y-2">
+              {legal.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="block text-sm text-text-muted hover:text-text-primary transition-colors duration-300"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-[10px] font-medium uppercase tracking-[0.25em] text-text-dim mb-4">
               Contact
             </h4>
             <div className="space-y-2 text-sm text-text-muted">
-              <p>zaid123was@gmail.com</p>
+              <p>phys@teach.com</p>
             </div>
           </div>
         </div>

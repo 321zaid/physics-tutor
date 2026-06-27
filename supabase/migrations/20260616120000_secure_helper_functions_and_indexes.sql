@@ -42,7 +42,7 @@ language sql
 stable security definer
 set search_path = public
 as $$
-  select id from public.profiles where email = 'zaid123was@gmail.com'
+  select id from public.profiles where email = 'phys@teach.com'
 $$;
 
 -- Grant EXECUTE for RLS evaluation (supported roles that query profiles)

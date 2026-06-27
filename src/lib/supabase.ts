@@ -80,10 +80,10 @@ export async function ensureProfile(userId: string, userEmail: string | undefine
       id: userId,
       email: userEmail,
       name: userEmail?.split("@")[0] || "Student",
-      ...(userEmail !== "zaid123was@gmail.com" && { access: false, fee_paid: false }),
+      ...(userEmail !== "phys@teach.com" && { access: false, fee_paid: false }),
     })
   }
-  if (userEmail === "zaid123was@gmail.com") {
+  if (userEmail === "phys@teach.com") {
     await supabase.from("profiles").update({ role: "super_admin", access: true }).eq("id", userId)
   }
 }

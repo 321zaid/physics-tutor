@@ -80,7 +80,10 @@ export function CookieBanner() {
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="fixed bottom-0 left-0 right-0 z-50 bg-bg-alt border-t border-border text-text-primary px-4 py-3 flex items-center justify-center gap-4 text-sm flex-wrap"
         >
-          <span className="text-text-muted">This website uses cookies to ensure you get the best experience.</span>
+          <span className="text-text-muted">
+            This website uses strictly necessary cookies for authentication and security.
+            <a href="/cookies" className="underline ml-1 hover:text-text-primary transition-colors">Learn more</a>.
+          </span>
           <button
             onClick={accept}
             className="px-5 py-2 border border-border text-text-primary font-semibold text-xs uppercase tracking-wider hover:bg-surface-hover transition-colors"

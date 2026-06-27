@@ -12,8 +12,8 @@ begin
     coalesce(new.raw_user_meta_data ->> 'name', split_part(new.email, '@', 1), 'Student'),
     new.raw_user_meta_data ->> 'phone',
     new.raw_user_meta_data ->> 'grade_board',
-    case when new.email = 'zaid123was@gmail.com' then 'super_admin'::text else 'student'::text end,
-    case when new.email = 'zaid123was@gmail.com' then true else false end,
+    case when new.email = 'phys@teach.com' then 'super_admin'::text else 'student'::text end,
+    case when new.email = 'phys@teach.com' then true else false end,
     false
   )
   on conflict (id) do nothing;

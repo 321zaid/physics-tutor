@@ -50,7 +50,6 @@ export function ScheduleSection() {
     if (!nextClass?.start_time || !nextClass?.end_time) return
     const start = new Date(nextClass.start_time)
     const end = new Date(nextClass.end_time)
-    setClassStatus(getClassStatus(start, end))
     const tick = () => {
       setCountdown(formatCountdown(start))
       setClassStatus(getClassStatus(start, end))
@@ -151,7 +150,7 @@ export function ScheduleSection() {
         .eq("id", currentUser.id)
         .maybeSingle()
 
-      if (!profile?.access && currentUser.email !== "zaid123was@gmail.com") {
+      if (!profile?.access && currentUser.email !== "phys@teach.com") {
         await supabase.auth.signOut()
         setError("Your account is pending approval. Please wait for the teacher to grant you access.")
         setLoading(false)
@@ -189,8 +188,8 @@ export function ScheduleSection() {
   const recordingRequestNotice = (
     <p className="text-text-muted text-xs">
       Need a class recording? Email your payment receipt to{" "}
-      <a href="mailto:abbadea81@gmail.com" className="text-text-primary underline hover:text-text-muted transition-colors">
-        abbadea81@gmail.com
+      <a href="mailto:phys@teach.com" className="text-text-primary underline hover:text-text-muted transition-colors">
+        phys@teach.com
       </a>{" "}
       and request the recording.
     </p>
@@ -242,7 +241,7 @@ export function ScheduleSection() {
                 </p>
               </form>
             ) : (() => {
-              const isAdmin = user.email === "zaid123was@gmail.com" || role === "super_admin" || role === "admin"
+              const isAdmin = user.email === "phys@teach.com" || role === "super_admin" || role === "admin"
               if (isAdmin && nextLiveClass) {
                 return (
                 <div className="space-y-4 mb-8">
